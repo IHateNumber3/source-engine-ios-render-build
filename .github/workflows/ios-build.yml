@@ -17,10 +17,11 @@ on:
           - portal
           - hl2mp
           - episodic
+          - cstrike
       bundle_id:
         description: "iOS bundle identifier for the packaged app"
         required: true
-        default: com.v0idx9.sourceengine
+        default: com.yourname.sourceengine
 
 jobs:
   build-ios-ipa:
@@ -59,7 +60,7 @@ jobs:
       - name: Build engine and package IPA
         env:
           GAME: ${{ inputs.game }}
-          BUNDLE_NAME: SourceEngine
+          BUNDLE_NAME: ${{ inputs.game }}
           BUNDLE_ID: ${{ inputs.bundle_id }}.${{ inputs.game }}
         run: scripts/ios/package-ipa.sh
 
