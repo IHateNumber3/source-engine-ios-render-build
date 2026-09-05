@@ -40,6 +40,15 @@ END_DATADESC()
 
 void CPropWeightedCube::Spawn( void )
 {
+	// Without this flag the physcannon does not register the prop as an
+	// official pickup target (confirmed by cross-checking Portal 1's own
+	// weight box spawn command, CC_Create_PortalWeightBox, which sets this
+	// exact flag on the plain prop_physics it creates). The object is still
+	// physically simulated without it, but +use/physcannon pickup silently
+	// does nothing -- which matches exactly what was being seen before this
+	// fix.
+	AddSpawnFlags( SF_PHYSPROP_ENABLE_PICKUP_OUTPUT );
+
 	// Reuse all of CPhysicsProp's normal physics-prop spawn behavior
 	// (model precache, VPhysics object creation, interaction as a physics
 	// object, physcannon pickup support, etc.) -- we get this for free.
