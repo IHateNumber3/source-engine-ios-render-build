@@ -134,6 +134,8 @@ void CPropFloorButton::Spawn( void )
 		// the default start frame.
 		ResetSequence( m_UpSequence );
 		SetCycle( 1.0f );
+		ResetSequenceInfo();
+		UseClientSideAnimation();
 	}
 
 	// SOLID_VPHYSICS needs an actual physics object behind it or the entity
@@ -172,6 +174,8 @@ void CPropFloorButton::Press( CBaseEntity *pActivator )
 	{
 		ResetSequence( m_DownSequence );
 		SetPlaybackRate( 1.0f );
+		ResetSequenceInfo();
+		UseClientSideAnimation();
 	}
 
 	if ( !m_bSuppressAnimSounds )
@@ -193,11 +197,8 @@ void CPropFloorButton::UnPress( CBaseEntity *pActivator )
 	{
 		ResetSequence( m_UpSequence );
 		SetPlaybackRate( 1.0f );
-	}
-
-	if ( !m_bSuppressAnimSounds )
-	{
-		EmitSound( "Portal.ButtonRelease" );
+		ResetSequenceInfo();
+		UseClientSideAnimation();
 	}
 
 	m_OnUnPressed.FireOutput( pActivator, this );
