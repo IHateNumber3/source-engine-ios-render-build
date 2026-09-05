@@ -45,31 +45,34 @@ void CPropWeightedCube::Spawn( void )
 {
 	Precache();
 
+	// Спочатку виставляємо модель і скін ДО BaseClass::Spawn(), 
+	// щоб сорсівський CPhysicsProp одразу створив правильну фізику та коллбокси
 	switch ( m_nCubeType )
 	{
 		case CUBE_COMPANION:
 			SetModelName( MAKE_STRING( "models/props/metal_box.mdl" ) );
-			SetSkin( 1 ); // Скін компаньйона
+			m_nSkin = 1;
 			break;
 		case CUBE_REFLECTIVE:
 		case CUBE_SCHRODINGER:
 			SetModelName( MAKE_STRING( "models/props/reflection_cube.mdl" ) );
-			SetSkin( 0 );
+			m_nSkin = 0;
 			break;
 		case CUBE_SPHERE:
 			SetModelName( MAKE_STRING( "models/props_gameplay/mp_ball.mdl" ) );
-			SetSkin( 0 );
+			m_nSkin = 0;
 			break;
 		case CUBE_ANTIQUE:
 			SetModelName( MAKE_STRING( "models/props_underground/underground_weighted_cube.mdl" ) );
-			SetSkin( 0 );
+			m_nSkin = 0;
 			break;
 		case CUBE_STANDARD:
 		default:
 			SetModelName( MAKE_STRING( "models/props/metal_box.mdl" ) );
-			SetSkin( 0 );
+			m_nSkin = 0;
 			break;
 	}
 
+	// Тепер стандартний спавн усе підхопить сам ідеально
 	BaseClass::Spawn();
 }
