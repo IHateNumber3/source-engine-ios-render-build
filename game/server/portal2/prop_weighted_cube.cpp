@@ -1,6 +1,9 @@
 //========= Merged: our fixes + additional public-SDK techniques =========
 //
 // prop_weighted_cube, CubeType-driven model/skin switch.
+// Class declaration now lives in prop_weighted_cube.h so other files
+// (prop_floor_button.cpp) can see WeightedCubeType_e / GetCubeType()
+// without duplicating the class.
 //
 // NOTE ON MODEL PATHS: none of the model paths below are verified against a
 // real Portal 2 install. "models/props/metal_box.mdl" is a REAL path but is
@@ -12,32 +15,8 @@
 //===========================================================================
 
 #include "cbase.h"
-#include "props.h"
+#include "prop_weighted_cube.h"
 #include "tier0/memdbgon.h" // must be last include
-
-enum WeightedCubeType_e
-{
-	CUBE_STANDARD = 0,
-	CUBE_COMPANION = 1,
-	CUBE_REFLECTIVE = 2,
-	CUBE_SPHERE = 3,
-	CUBE_ANTIQUE = 4,
-	CUBE_SCHRODINGER = 5
-};
-
-class CPropWeightedCube : public CPhysicsProp
-{
-public:
-	DECLARE_CLASS( CPropWeightedCube, CPhysicsProp );
-	DECLARE_DATADESC();
-
-	void			Precache( void );
-	void			Spawn( void );
-	virtual int		ObjectCaps( void );
-
-private:
-	int		m_nCubeType;
-};
 
 LINK_ENTITY_TO_CLASS( prop_weighted_cube, CPropWeightedCube );
 
