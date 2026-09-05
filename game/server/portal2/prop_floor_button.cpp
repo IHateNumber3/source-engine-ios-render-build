@@ -135,8 +135,11 @@ void CPropFloorButton::Spawn( void )
 		ResetSequence( m_UpSequence );
 		SetCycle( 1.0f );
 	}
-	// NOTE: no manual CreateVPhysics() here -- BaseClass::Spawn() already
-	// creates the physics object for this entity.
+
+	// SOLID_VPHYSICS needs an actual physics object behind it or the entity
+	// has no collision at all (earlier removal of this call was based on a
+	// misdiagnosis of an unrelated prop's problem, not this button's).
+	CreateVPhysics();
 }
 
 void CPropFloorButton::Activate( void )
@@ -168,6 +171,7 @@ void CPropFloorButton::Press( CBaseEntity *pActivator )
 	if ( m_DownSequence >= 0 )
 	{
 		ResetSequence( m_DownSequence );
+		SetPlaybackRate( 1.0f );
 	}
 
 	if ( !m_bSuppressAnimSounds )
@@ -188,6 +192,7 @@ void CPropFloorButton::UnPress( CBaseEntity *pActivator )
 	if ( m_UpSequence >= 0 )
 	{
 		ResetSequence( m_UpSequence );
+		SetPlaybackRate( 1.0f );
 	}
 
 	if ( !m_bSuppressAnimSounds )
@@ -233,11 +238,15 @@ CFloorButtonTrigger *CFloorButtonTrigger::Create( const Vector &vecMins, const V
 
 void CFloorButtonTrigger::Spawn( void )
 {
+	BaseClass::Spawn();
+
+	// Set these AFTER BaseClass::Spawn() so they're the final word -- if
+	// they were set before, whatever CBaseTrigger::Spawn() does internally
+	// could clobber them, leaving the volume solid (blocking movement like
+	// a wall) instead of a pure pass-through trigger.
 	SetMoveType( MOVETYPE_NONE );
 	SetSolid( SOLID_BSP );
-	AddSolidFlags( FSOLID_NOT_SOLID | FSOLID_TRIGGER );
-
-	BaseClass::Spawn();
+	SetSolidFlags( FSOLID_NOT_SOLID | FSOLID_TRIGGER );
 }
 
 bool CFloorButtonTrigger::PassesTriggerFilters( CBaseEntity *pOther )
