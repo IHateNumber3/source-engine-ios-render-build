@@ -718,6 +718,12 @@ void CInputSystem::PollInputState_Platform()
 					ButtonCode_t virtualCode;
 					if ( MapCocoaVirtualKeyToButtonCode( pEvent->m_VirtualKeyCode, &virtualCode ) )
 					{
+						// Закрываем экранную клавиатуру при нажатии Enter
+						if ( virtualCode == KEY_ENTER && SDL_IsTextInputActive() )
+						{
+							SDL_StopTextInput();
+						}
+
 						ButtonCode_t scanCode = virtualCode;
 
 						if( ( scanCode != BUTTON_CODE_NONE ) )
