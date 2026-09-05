@@ -46,8 +46,8 @@ public:
 
 	void Spawn( void );
 	virtual bool PassesTriggerFilters( CBaseEntity *pOther );
-	virtual void OnStartTouchAll( CBaseEntity *pOther );
-	virtual void OnEndTouchAll( CBaseEntity *pOther );
+	virtual void StartTouch( CBaseEntity *pOther );
+	virtual void EndTouch( CBaseEntity *pOther );
 
 private:
 	CPropFloorButton *m_pOwner;
@@ -84,7 +84,7 @@ private:
 	int		m_DownSequence;
 	bool	m_bSuppressAnimSounds;
 
-	CNetworkVar( bool, m_bButtonState );
+	bool	m_bButtonState;
 
 	COutputEvent	m_OnPressed;
 	COutputEvent	m_OnUnPressed;
@@ -99,6 +99,7 @@ BEGIN_DATADESC( CPropFloorButton )
 	DEFINE_FIELD( m_UpSequence, FIELD_INTEGER ),
 	DEFINE_FIELD( m_DownSequence, FIELD_INTEGER ),
 	DEFINE_FIELD( m_hTrigger, FIELD_EHANDLE ),
+	DEFINE_FIELD( m_bButtonState, FIELD_BOOLEAN ),
 
 	DEFINE_INPUTFUNC( FIELD_VOID, "PressIn", InputPressIn ),
 	DEFINE_INPUTFUNC( FIELD_VOID, "PressOut", InputPressOut ),
@@ -255,20 +256,25 @@ bool CFloorButtonTrigger::PassesTriggerFilters( CBaseEntity *pOther )
 	return false;
 }
 
-void CFloorButtonTrigger::OnStartTouchAll( CBaseEntity *pOther )
+void CFloorButtonTrigger::StartTouch( CBaseEntity *pOther )
 {
+	BaseClass::StartTouch( pOther );
+
+	if ( !PassesTriggerFilters( pOther ) )
+		return;
+
 	if ( m_pOwner )
 	{
 		m_pOwner->Press( pOther );
 	}
-	BaseClass::OnStartTouchAll( pOther );
 }
 
-void CFloorButtonTrigger::OnEndTouchAll( CBaseEntity *pOther )
+void CFloorButtonTrigger::EndTouch( CBaseEntity *pOther )
 {
-	if ( m_pOwner )
+	if ( m_pOwner && PassesTriggerFilters( pOther ) )
 	{
 		m_pOwner->UnPress( pOther );
 	}
-	BaseClass::OnEndTouchAll( pOther );
+
+	BaseClass::EndTouch( pOther );
 }
