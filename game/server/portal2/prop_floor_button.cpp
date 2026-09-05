@@ -247,14 +247,29 @@ bool CFloorButtonTrigger::PassesTriggerFilters( CBaseEntity *pOther )
 	if ( pOther->IsPlayer() )
 		return true;
 
-	// Anything with weight (physics-simulated) also counts -- this covers
-	// prop_weighted_cube and any ordinary physics prop pushed onto it,
-	// same as the documented "activated by a player or objects" behavior.
+	// Перевіряємо, чи це наш кастомний куб з Portal 2
+	if ( FClassnameIs( pOther, "prop_weighted_cube" ) )
+	{
+		CPropWeightedCube *pCube = dynamic_cast<CPropWeightedCube*>( pOther );
+		if ( pCube )
+		{
+			// Тут можна фільтрувати за CubeType, якщо потрібно (наприклад, дозволити тільки CUBE_STANDARD та CUBE_COMPANION)
+			WeightedCubeType_e type = pCube->GetCubeType();
+			if ( type == CUBE_STANDARD || type == CUBE_COMPANION || type == CUBE_REFLECTIVE )
+			{
+				return true;
+			}
+			return false; // Сфери або інші типи можуть не натискати кнопку, якщо це закладено логікою
+		}
+	}
+
+	// Звичайні фізичні об'єкти з масою
 	if ( pOther->VPhysicsGetObject() != NULL )
 		return true;
 
 	return false;
 }
+
 
 void CFloorButtonTrigger::StartTouch( CBaseEntity *pOther )
 {
