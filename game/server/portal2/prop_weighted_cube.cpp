@@ -20,6 +20,7 @@ public:
 
 	void Spawn( void );
 	void Precache( void );
+	virtual int ObjectCaps( void ); // Додаємо капу для підняття руками
 
 private:
 	int m_nCubeType;
@@ -30,6 +31,12 @@ LINK_ENTITY_TO_CLASS( prop_weighted_cube, CPropWeightedCube );
 BEGIN_DATADESC( CPropWeightedCube )
 	DEFINE_KEYFIELD( m_nCubeType, FIELD_INTEGER, "CubeType" ),
 END_DATADESC()
+
+int CPropWeightedCube::ObjectCaps( void )
+{
+	// Дозволяємо підбирати проп кнопкою +USE (голими руками)
+	return ( BaseClass::ObjectCaps() | FCAP_IMPULSE_USE );
+}
 
 void CPropWeightedCube::Precache( void )
 {
@@ -45,34 +52,47 @@ void CPropWeightedCube::Spawn( void )
 {
 	Precache();
 
-	// Спочатку виставляємо модель і скін ДО BaseClass::Spawn(), 
-	// щоб сорсівський CPhysicsProp одразу створив правильну фізику та коллбокси
+	const char *pszModel = "models/props/metal_box.mdl";
+	int nTargetSkin = 0;
+
 	switch ( m_nCubeType )
 	{
 		case CUBE_COMPANION:
-			SetModelName( MAKE_STRING( "models/props/metal_box.mdl" ) );
-			m_nSkin = 1;
+			pszModel = "models/props/metal_box.mdl";
+			nTargetSkin = 1;
 			break;
 		case CUBE_REFLECTIVE:
 		case CUBE_SCHRODINGER:
-			SetModelName( MAKE_STRING( "models/props/reflection_cube.mdl" ) );
-			m_nSkin = 0;
+			pszModel = "models/props/reflection_cube.mdl";
+			nTargetSkin = 0;
 			break;
 		case CUBE_SPHERE:
-			SetModelName( MAKE_STRING( "models/props_gameplay/mp_ball.mdl" ) );
-			m_nSkin = 0;
+			pszModel = "models/props_gameplay/mp_ball.mdl";
+			nTargetSkin = 0;
 			break;
 		case CUBE_ANTIQUE:
-			SetModelName( MAKE_STRING( "models/props_underground/underground_weighted_cube.mdl" ) );
-			m_nSkin = 0;
+			pszModel = "models/props_underground/underground_weighted_cube.mdl";
+			nTargetSkin = 0;
 			break;
 		case CUBE_STANDARD:
 		default:
-			SetModelName( MAKE_STRING( "models/props/metal_box.mdl" ) );
-			m_nSkin = 0;
+			pszModel = "models/props/metal_box.mdl";
+			nTargetSkin = 0;
 			break;
 	}
 
-	// Тепер стандартний спавн усе підхопить сам ідеально
+	SetModelName( MAKE_STRING( pszModel ) );
+	m_nSkin = nTargetSkin;
+
 	BaseClass::Spawn();
+
+	// Дозволяємо взаємодію з фізганом / портальною гарматою
+	SetInteraction( PROPINTER_PHYSGUN_ALLOW_OVERHEAD );
+
+	// Примусово прокидаємо фізичний об'єкт, щоб він не був "замороженим"
+	IPhysicsObject *pPhys = VPhysicsGetObject();
+	if ( pPhys )
+	{
+		pPhys->Wake();
+	}
 }
