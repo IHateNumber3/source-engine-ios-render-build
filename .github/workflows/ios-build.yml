@@ -68,7 +68,7 @@ jobs:
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SourceEngine-${{ inputs.game }}-unsigned-ipa
+          name: ${{ inputs.game }}-unsigned-ipa
           path: "*.ipa"
           if-no-files-found: error
           retention-days: 14
