@@ -9,40 +9,36 @@
 //   - Outputs:  OnPressed, OnUnPressed
 //   - Detection: wiki explicitly says a trigger_multiple-style volume is the
 //     documented substitute for the internal trigger_portal_button (which
-//     can't be placed directly in a map). We build our own small
-//     CBaseTrigger-derived volume the same way any custom trigger_multiple
-//     works in stock Source SDK 2013.
+//     can't be placed directly in a map).
+//   - CubeType filtering: only STANDARD/COMPANION/REFLECTIVE cubes press the
+//     button (spheres etc. don't), via prop_weighted_cube's GetCubeType().
 //
-// NOT implemented (retail-only extras, no public documentation covers their
-// exact internal behavior, so left out rather than guessed at):
-//   - Co-op player-color outputs (OnPressedBlue/OnPressedOrange)
-//   - Achievement hooks
-//   - Ball-only / cube-only button subclasses (prop_floor_ball_button etc.)
-//     -- easy to add later as a CubeType check once prop_weighted_cube
-//     exposes GetCubeType() the same way, but skipped for this first pass.
+// NOT implemented: co-op team outputs, achievement hooks -- no public docs
+// cover their exact internal behavior.
 //
 //===================================================================================
 
 #include "cbase.h"
 #include "props.h"
 #include "triggers.h"
+#include "prop_weighted_cube.h"
 #include "tier0/memdbgon.h" // must be last include
 
+// NOTE: unverified model path, see prop_weighted_cube.h/.cpp note. Check
+// your own legal Portal 2 files and correct if this doesn't load.
 #define PROP_FLOOR_BUTTON_MODEL_NAME "models/props/portal_button.mdl"
 
 class CPropFloorButton;
 
 //-----------------------------------------------------------------------------
-// The detection volume. Same role the wiki says trigger_multiple plays for
-// this entity type -- a plain touch-trigger that tells the button when
-// something is standing on it.
+// The detection volume.
 //-----------------------------------------------------------------------------
 class CFloorButtonTrigger : public CBaseTrigger
 {
 public:
 	DECLARE_CLASS( CFloorButtonTrigger, CBaseTrigger );
 
-	static CFloorButtonTrigger *Create( const Vector &vecOrigin, const Vector &vecMins, const Vector &vecMaxs, CPropFloorButton *pOwner );
+	static CFloorButtonTrigger *Create( const Vector &vecMins, const Vector &vecMaxs, CPropFloorButton *pOwner );
 
 	void Spawn( void );
 	virtual bool PassesTriggerFilters( CBaseEntity *pOther );
@@ -83,7 +79,6 @@ private:
 	int		m_UpSequence;
 	int		m_DownSequence;
 	bool	m_bSuppressAnimSounds;
-
 	bool	m_bButtonState;
 
 	COutputEvent	m_OnPressed;
@@ -133,20 +128,24 @@ void CPropFloorButton::Spawn( void )
 	m_DownSequence = LookupSequence( "down" );
 	if ( m_UpSequence >= 0 )
 	{
+		// "up" is a press->release transition animation. Frame 0 (cycle 0)
+		// looks pressed; we want the resting/idle look, which is the END of
+		// that transition, so force cycle to 1.0 instead of leaving it at
+		// the default start frame.
 		ResetSequence( m_UpSequence );
+		SetCycle( 1.0f );
 	}
-
-	CreateVPhysics();
+	// NOTE: no manual CreateVPhysics() here -- BaseClass::Spawn() already
+	// creates the physics object for this entity.
 }
 
 void CPropFloorButton::Activate( void )
 {
 	BaseClass::Activate();
 
-	// Build the detection volume once the rest of the map has spawned.
 	Vector vecMins( -20, -20, 0 );
 	Vector vecMaxs( 20, 20, 14 );
-	m_hTrigger = CFloorButtonTrigger::Create( GetAbsOrigin(), vecMins, vecMaxs, this );
+	m_hTrigger = CFloorButtonTrigger::Create( vecMins, vecMaxs, this );
 }
 
 void CPropFloorButton::UpdateOnRemove( void )
@@ -162,7 +161,7 @@ void CPropFloorButton::UpdateOnRemove( void )
 void CPropFloorButton::Press( CBaseEntity *pActivator )
 {
 	if ( m_bButtonState )
-		return; // already pressed, nothing to do
+		return;
 
 	m_bButtonState = true;
 
@@ -173,7 +172,7 @@ void CPropFloorButton::Press( CBaseEntity *pActivator )
 
 	if ( !m_bSuppressAnimSounds )
 	{
-		EmitSound( "Portal.button_down" );
+		EmitSound( "Portal.ButtonDepress" );
 	}
 
 	m_OnPressed.FireOutput( pActivator, this );
@@ -182,7 +181,7 @@ void CPropFloorButton::Press( CBaseEntity *pActivator )
 void CPropFloorButton::UnPress( CBaseEntity *pActivator )
 {
 	if ( !m_bButtonState )
-		return; // already unpressed, nothing to do
+		return;
 
 	m_bButtonState = false;
 
@@ -193,7 +192,7 @@ void CPropFloorButton::UnPress( CBaseEntity *pActivator )
 
 	if ( !m_bSuppressAnimSounds )
 	{
-		EmitSound( "Portal.button_up" );
+		EmitSound( "Portal.ButtonRelease" );
 	}
 
 	m_OnUnPressed.FireOutput( pActivator, this );
@@ -212,18 +211,21 @@ void CPropFloorButton::InputPressOut( inputdata_t &inputdata )
 //-----------------------------------------------------------------------------
 // Trigger volume implementation
 //-----------------------------------------------------------------------------
-CFloorButtonTrigger *CFloorButtonTrigger::Create( const Vector &vecOrigin, const Vector &vecMins, const Vector &vecMaxs, CPropFloorButton *pOwner )
+CFloorButtonTrigger *CFloorButtonTrigger::Create( const Vector &vecMins, const Vector &vecMaxs, CPropFloorButton *pOwner )
 {
 	CFloorButtonTrigger *pTrigger = (CFloorButtonTrigger *)CreateEntityByName( "trigger_floor_button" );
 	if ( !pTrigger )
 		return NULL;
 
-	UTIL_SetOrigin( pTrigger, vecOrigin );
+	// Parent first, then zero the local origin -- setting an absolute world
+	// origin before parenting and letting SetParent re-base it into local
+	// space was making the trigger end up offset from the button model.
+	pTrigger->SetParent( pOwner );
+	pTrigger->SetLocalOrigin( vec3_origin );
 	UTIL_SetSize( pTrigger, vecMins, vecMaxs );
 
 	DispatchSpawn( pTrigger );
 
-	pTrigger->SetParent( pOwner );
 	pTrigger->m_pOwner = pOwner;
 
 	return pTrigger;
@@ -243,33 +245,26 @@ bool CFloorButtonTrigger::PassesTriggerFilters( CBaseEntity *pOther )
 	if ( !BaseClass::PassesTriggerFilters( pOther ) )
 		return false;
 
-	// Players always count.
 	if ( pOther->IsPlayer() )
 		return true;
 
-	// Перевіряємо, чи це наш кастомний куб з Portal 2
 	if ( FClassnameIs( pOther, "prop_weighted_cube" ) )
 	{
 		CPropWeightedCube *pCube = dynamic_cast<CPropWeightedCube*>( pOther );
 		if ( pCube )
 		{
-			// Тут можна фільтрувати за CubeType, якщо потрібно (наприклад, дозволити тільки CUBE_STANDARD та CUBE_COMPANION)
 			WeightedCubeType_e type = pCube->GetCubeType();
-			if ( type == CUBE_STANDARD || type == CUBE_COMPANION || type == CUBE_REFLECTIVE )
-			{
-				return true;
-			}
-			return false; // Сфери або інші типи можуть не натискати кнопку, якщо це закладено логікою
+			// Spheres don't press floor buttons; standard/companion/
+			// reflective cubes do.
+			return ( type == CUBE_STANDARD || type == CUBE_COMPANION || type == CUBE_REFLECTIVE );
 		}
 	}
 
-	// Звичайні фізичні об'єкти з масою
 	if ( pOther->VPhysicsGetObject() != NULL )
 		return true;
 
 	return false;
 }
-
 
 void CFloorButtonTrigger::StartTouch( CBaseEntity *pOther )
 {
