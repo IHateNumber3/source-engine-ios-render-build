@@ -136,6 +136,7 @@ void CPropFloorButton::Spawn( void )
 		SetSequence( m_UpSequence );
 		SetCycle( 1.0f );
 		SetPlaybackRate( 0.0f );
+		m_flAnimTime = gpGlobals->curtime;
 		UseClientSideAnimation();
 	}
 
@@ -196,9 +197,13 @@ void CPropFloorButton::Press( CBaseEntity *pActivator )
 	if ( m_DownSequence >= 0 )
 	{
 		SetSequence( m_DownSequence );
+		SetCycle( 0.0f );
 		SetPlaybackRate( 1.0f );
+		m_flAnimTime = gpGlobals->curtime;
 		UseClientSideAnimation();
 	}
+
+	m_nSkin = 1;
 
 	if ( !m_bSuppressAnimSounds )
 	{
@@ -218,9 +223,13 @@ void CPropFloorButton::UnPress( CBaseEntity *pActivator )
 	if ( m_UpSequence >= 0 )
 	{
 		SetSequence( m_UpSequence );
+		SetCycle( 0.0f );
 		SetPlaybackRate( 1.0f );
+		m_flAnimTime = gpGlobals->curtime;
 		UseClientSideAnimation();
 	}
+
+	m_nSkin = 0;
 
 	m_OnUnPressed.FireOutput( pActivator, this );
 }
