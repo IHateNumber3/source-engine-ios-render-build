@@ -643,161 +643,59 @@ void C_Portal_Player::ClientThink( void )
 
 void C_Portal_Player::FixTeleportationRoll( void )
 {
-	if( IsInAVehicle() ) //HL2 compatibility fix. do absolutely nothing to the view in vehicles
+	if ( IsInAVehicle() || !IsLocalPlayer() )
 		return;
 
-	if( !IsLocalPlayer() )
-		return;
-
-	// Normalize roll from odd portal transitions
 	QAngle vAbsAngles = EyeAngles();
 
-
-	Vector vCurrentForward, vCurrentRight, vCurrentUp;
-	AngleVectors( vAbsAngles, &vCurrentForward, &vCurrentRight, &vCurrentUp );
-
+	// Если уже стоим прямо — сбрасываем таймер и выходим
 	if ( vAbsAngles[ROLL] == 0.0f )
 	{
-		m_fReorientationRate = 0.0f;
-		g_bUpsideDown = ( vCurrentUp.z < 0.0f );
+		m_flReorientStartTime = -1.0f;
+		m_flStartRoll = 0.0f;
 		return;
 	}
 
-	bool bForcePitchReorient = ( vAbsAngles[ROLL] > 175.0f && vCurrentForward.z > 0.99f );
 	bool bOnGround = ( GetGroundEntity() != NULL );
 
-	if ( bForcePitchReorient )
+	// Проверка квара на докрутку в воздухе
+	if ( !cl_reorient_in_air.GetBool() && !bOnGround )
+		return;
+
+	// 1. Фиксируем начальный момент и угол, когда нас впервые «перекосило»
+	if ( m_flReorientStartTime < 0.0f || m_flStartRoll == 0.0f )
 	{
-		m_fReorientationRate = REORIENTATION_RATE * ( ( bOnGround ) ? ( 2.0f ) : ( 1.0f ) );
-	}
-	else
-	{
-		// Don't reorient in air if they don't want to
-		if ( !cl_reorient_in_air.GetBool() && !bOnGround )
-		{
-			g_bUpsideDown = ( vCurrentUp.z < 0.0f );
-			return;
-		}
+		m_flReorientStartTime = gpGlobals->curtime;
+		m_flStartRoll = vAbsAngles[ROLL];
 	}
 
-	if ( vCurrentUp.z < 0.75f )
-	{
-		m_fReorientationRate += gpGlobals->frametime * REORIENTATION_ACCELERATION_RATE;
+	// 2. Длительность всего поворота в секундах (на земле быстрее, в воздухе чуть дольше)
+	float flDuration = bOnGround ? 0.35f : 0.5f; 
 
-		// Upright faster if on the ground
-		float fMaxReorientationRate = REORIENTATION_RATE * ( ( bOnGround ) ? ( 2.0f ) : ( 1.0f ) );
-		if ( m_fReorientationRate > fMaxReorientationRate )
-			m_fReorientationRate = fMaxReorientationRate;
-	}
-	else
+	// Прогресс анимации от 0.0 (старт) до 1.0 (конец)
+	float flProgress = ( gpGlobals->curtime - m_flReorientStartTime ) / flDuration;
+	flProgress = clamp( flProgress, 0.0f, 1.0f );
+
+	// 3. МАТЕМАТИКА PORTAL 2: Квинтический сплайн (Smoothstep с ускорением в начале и замедлением в конце)
+	// Формула: t * t * t * (t * (t * 6 - 15) + 10)
+	// Дает идеально гладкую S-образную кривую скорости
+	float flSmoothProgress = flProgress * flProgress * flProgress * ( flProgress * ( flProgress * 6.0f - 15.0f ) + 10.0f );
+
+	// Интерполируем от начального угла к 0
+	vAbsAngles[ROLL] = SimpleSplineRemapValClamped( flSmoothProgress, 0.0f, 1.0f, m_flStartRoll, 0.0f );
+
+	// 4. Доводка микро-градусов в конце, чтобы не было дребезга
+	if ( flProgress >= 1.0f || fabs( vAbsAngles[ROLL] ) < 0.01f )
 	{
-		if ( m_fReorientationRate > REORIENTATION_RATE * 0.5f )
-		{
-			m_fReorientationRate -= gpGlobals->frametime * REORIENTATION_ACCELERATION_RATE;
-			if ( m_fReorientationRate < REORIENTATION_RATE * 0.5f )
-				m_fReorientationRate = REORIENTATION_RATE * 0.5f;
-		}
-		else if ( m_fReorientationRate < REORIENTATION_RATE * 0.5f )
-		{
-			m_fReorientationRate += gpGlobals->frametime * REORIENTATION_ACCELERATION_RATE;
-			if ( m_fReorientationRate > REORIENTATION_RATE * 0.5f )
-				m_fReorientationRate = REORIENTATION_RATE * 0.5f;
-		}
+		vAbsAngles[ROLL] = 0.0f;
+		m_flReorientStartTime = -1.0f;
+		m_flStartRoll = 0.0f;
 	}
 
-	if ( !m_bPitchReorientation && !bForcePitchReorient )
-	{
-		// Randomize which way we roll if we're completely upside down
-		if ( vAbsAngles[ROLL] == 180.0f && RandomInt( 0, 1 ) == 1 )
-		{
-			vAbsAngles[ROLL] = -180.0f;
-		}
-
-		if ( vAbsAngles[ROLL] < 0.0f )
-		{
-			vAbsAngles[ROLL] += gpGlobals->frametime * m_fReorientationRate;
-			if ( vAbsAngles[ROLL] > 0.0f )
-				vAbsAngles[ROLL] = 0.0f;
-			engine->SetViewAngles( vAbsAngles );
-		}
-		else if ( vAbsAngles[ROLL] > 0.0f )
-		{
-			vAbsAngles[ROLL] -= gpGlobals->frametime * m_fReorientationRate;
-			if ( vAbsAngles[ROLL] < 0.0f )
-				vAbsAngles[ROLL] = 0.0f;
-			engine->SetViewAngles( vAbsAngles );
-			m_angEyeAngles = vAbsAngles;
-			m_iv_angEyeAngles.Reset();
-		}
-	}
-	else
-	{
-		if ( vAbsAngles[ROLL] != 0.0f )
-		{
-			if ( vCurrentUp.z < 0.2f )
-			{
-				float fDegrees = gpGlobals->frametime * m_fReorientationRate;
-				if ( vCurrentForward.z > 0.0f )
-				{
-					fDegrees = -fDegrees;
-				}
-
-				// Rotate around the right axis
-				VMatrix mAxisAngleRot = SetupMatrixAxisRot( vCurrentRight, fDegrees );
-
-				vCurrentUp = mAxisAngleRot.VMul3x3( vCurrentUp );
-				vCurrentForward = mAxisAngleRot.VMul3x3( vCurrentForward );
-
-				VectorAngles( vCurrentForward, vCurrentUp, vAbsAngles );
-
-				engine->SetViewAngles( vAbsAngles );
-				m_angEyeAngles = vAbsAngles;
-				m_iv_angEyeAngles.Reset();
-			}
-			else
-			{
-				if ( vAbsAngles[ROLL] < 0.0f )
-				{
-					vAbsAngles[ROLL] += gpGlobals->frametime * m_fReorientationRate;
-					if ( vAbsAngles[ROLL] > 0.0f )
-						vAbsAngles[ROLL] = 0.0f;
-					engine->SetViewAngles( vAbsAngles );
-					m_angEyeAngles = vAbsAngles;
-					m_iv_angEyeAngles.Reset();
-				}
-				else if ( vAbsAngles[ROLL] > 0.0f )
-				{
-					vAbsAngles[ROLL] -= gpGlobals->frametime * m_fReorientationRate;
-					if ( vAbsAngles[ROLL] < 0.0f )
-						vAbsAngles[ROLL] = 0.0f;
-					engine->SetViewAngles( vAbsAngles );
-					m_angEyeAngles = vAbsAngles;
-					m_iv_angEyeAngles.Reset();
-				}
-			}
-		}
-	}
-
-	// Keep track of if we're upside down for look control
-	vAbsAngles = EyeAngles();
-	AngleVectors( vAbsAngles, NULL, NULL, &vCurrentUp );
-
-	if ( bForcePitchReorient )
-		g_bUpsideDown = ( vCurrentUp.z < 0.0f );
-	else
-		g_bUpsideDown = false;
-}
-
-const QAngle& C_Portal_Player::GetRenderAngles()
-{
-	if ( IsRagdoll() )
-	{
-		return vec3_angle;
-	}
-	else
-	{
-		return m_PlayerAnimState->GetRenderAngles();
-	}
+	// Применяем новые углы
+	engine->SetViewAngles( vAbsAngles );
+	m_angEyeAngles = vAbsAngles;
+	m_iv_angEyeAngles.Reset();
 }
 
 void C_Portal_Player::UpdateClientSideAnimation( void )
