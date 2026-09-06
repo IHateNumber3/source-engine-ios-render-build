@@ -201,6 +201,9 @@ public:
 	bool	m_bPitchReorientation;
 	float	m_fReorientationRate;
 	bool	m_bEyePositionIsTransformedByPortal; //when the eye and body positions are not on the same side of a portal
+	float	m_flReorientStartTime; // Время начала докрутки roll
+	float	m_flStartRoll;          // Исходный угол roll в момент начала поворота
+
 
 	CHandle<C_Prop_Portal>	m_hPortalEnvironment; //a portal whose environment the player is currently in, should be invalid most of the time
 	CHandle<C_Func_LiquidPortal>	m_hSurroundingLiquidPortal; //a liquid portal whose volume the player is standing in
