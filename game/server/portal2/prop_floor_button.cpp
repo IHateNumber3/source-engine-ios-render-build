@@ -128,16 +128,11 @@ void CPropFloorButton::Spawn( void )
 	m_DownSequence = LookupSequence( "down" );
 	if ( m_UpSequence >= 0 )
 	{
-		// "up" is a press->release transition animation. Frame 0 (cycle 0)
-		// looks pressed; we want the resting/idle look, which is the END of
-		// that transition, so force cycle to 1.0 instead of leaving it at
-		// the default start frame.
-		ResetSequence( m_UpSequence );
-		ResetSequenceInfo();
-		// ResetSequenceInfo() just reset cycle to 0 -- override it now,
-		// AFTER, to get the static "released" end-pose instead of the
-		// pressed-looking start frame. Playback rate 0 because this is a
-		// static idle pose, not something that should animate on its own.
+		// Match the confirmed-working reference pattern exactly: plain
+		// SetSequence() (not ResetSequence/ResetSequenceInfo, whose exact
+		// side effects in this engine fork I was guessing at) + explicit
+		// cycle/rate.
+		SetSequence( m_UpSequence );
 		SetCycle( 1.0f );
 		SetPlaybackRate( 0.0f );
 		UseClientSideAnimation();
@@ -186,8 +181,7 @@ void CPropFloorButton::Press( CBaseEntity *pActivator )
 
 	if ( m_DownSequence >= 0 )
 	{
-		ResetSequence( m_DownSequence );
-		ResetSequenceInfo();
+		SetSequence( m_DownSequence );
 		SetPlaybackRate( 1.0f );
 		UseClientSideAnimation();
 	}
@@ -209,8 +203,7 @@ void CPropFloorButton::UnPress( CBaseEntity *pActivator )
 
 	if ( m_UpSequence >= 0 )
 	{
-		ResetSequence( m_UpSequence );
-		ResetSequenceInfo();
+		SetSequence( m_UpSequence );
 		SetPlaybackRate( 1.0f );
 		UseClientSideAnimation();
 	}
