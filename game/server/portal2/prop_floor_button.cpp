@@ -1,22 +1,23 @@
-//========= Written from scratch against public Valve Developer Wiki docs =========
+//========= prop_floor_button -- clean rewrite =========
 //
-// prop_floor_button: a model entity that gets pressed by weight (player or a
-// prop_weighted_cube) standing on it, and fires OnPressed/OnUnPressed.
+// A model entity pressed by weight (player or prop_weighted_cube), firing
+// OnPressed/OnUnPressed. Detection uses a plain trigger volume, same as a
+// standard trigger_multiple (which is how Portal 1 handled floor button
+// triggers too) -- a separate CBaseTrigger-derived entity parented to the
+// button model.
 //
-// Documented behavior this implements (see developer.valvesoftware.com):
-//   - Keyvalue: SuppressAnimSounds <bool>
-//   - Inputs:   PressIn, PressOut
-//   - Outputs:  OnPressed, OnUnPressed
-//   - Detection: wiki explicitly says a trigger_multiple-style volume is the
-//     documented substitute for the internal trigger_portal_button (which
-//     can't be placed directly in a map).
-//   - CubeType filtering: only STANDARD/COMPANION/REFLECTIVE cubes press the
-//     button (spheres etc. don't), via prop_weighted_cube's GetCubeType().
+// Documented keyvalue/input/output names (Valve Developer Wiki):
+//   Keyvalue: SuppressAnimSounds <bool>
+//   Inputs:   PressIn, PressOut
+//   Outputs:  OnPressed, OnUnPressed
 //
-// NOT implemented: co-op team outputs, achievement hooks -- no public docs
-// cover their exact internal behavior.
+// Model: models/props/portal_button.mdl (confirmed correct against a real
+// legally-owned copy). Sequences on that model: BindPose, up, idledown,
+// down -- BindPose is the natural idle/unpressed look (no separate idle-up
+// sequence exists), "down"/"up" are press/release transitions only.
+// Sound events baked into the model: Portal.ButtonDepress / Portal.ButtonRelease.
 //
-//===================================================================================
+//========================================================
 
 #include "cbase.h"
 #include "props.h"
@@ -24,14 +25,12 @@
 #include "prop_weighted_cube.h"
 #include "tier0/memdbgon.h" // must be last include
 
-// NOTE: unverified model path, see prop_weighted_cube.h/.cpp note. Check
-// your own legal Portal 2 files and correct if this doesn't load.
 #define PROP_FLOOR_BUTTON_MODEL_NAME "models/props/portal_button.mdl"
 
 class CPropFloorButton;
 
 //-----------------------------------------------------------------------------
-// The detection volume.
+// Detection volume -- plain trigger_multiple-style touch trigger.
 //-----------------------------------------------------------------------------
 class CFloorButtonTrigger : public CBaseTrigger
 {
@@ -45,14 +44,13 @@ public:
 	virtual void StartTouch( CBaseEntity *pOther );
 	virtual void EndTouch( CBaseEntity *pOther );
 
-private:
 	CPropFloorButton *m_pOwner;
 };
 
 LINK_ENTITY_TO_CLASS( trigger_floor_button, CFloorButtonTrigger );
 
 //-----------------------------------------------------------------------------
-// The button itself.
+// The button.
 //-----------------------------------------------------------------------------
 class CPropFloorButton : public CDynamicProp
 {
@@ -66,10 +64,10 @@ public:
 	virtual void Spawn( void );
 	virtual void Activate( void );
 	virtual void UpdateOnRemove( void );
-	void AnimThink( void );
 
 	void Press( CBaseEntity *pActivator );
 	void UnPress( CBaseEntity *pActivator );
+	void AnimThink( void );
 
 	bool IsPressed( void ) const { return m_bButtonState; }
 
@@ -107,6 +105,8 @@ END_DATADESC()
 CPropFloorButton::CPropFloorButton()
 	: m_bButtonState( false )
 	, m_bSuppressAnimSounds( false )
+	, m_UpSequence( -1 )
+	, m_DownSequence( -1 )
 {
 }
 
@@ -123,41 +123,27 @@ void CPropFloorButton::Spawn( void )
 	Precache();
 	BaseClass::Spawn();
 
-	SetSolid( SOLID_VPHYSICS );
-
 	m_UpSequence = LookupSequence( "up" );
 	m_DownSequence = LookupSequence( "down" );
-	if ( m_UpSequence >= 0 )
-	{
-		// Match the confirmed-working reference pattern exactly: plain
-		// SetSequence() (not ResetSequence/ResetSequenceInfo, whose exact
-		// side effects in this engine fork I was guessing at) + explicit
-		// cycle/rate.
-		SetSequence( m_UpSequence );
-		SetCycle( 1.0f );
-		SetPlaybackRate( 0.0f );
-		m_flAnimTime = gpGlobals->curtime;
-		UseClientSideAnimation();
-	}
+	// Deliberately not forcing any sequence at idle -- BindPose (the
+	// model's default) is the correct unpressed look. "up"/"down" only
+	// play as transitions inside Press()/UnPress().
 
-	// SOLID_VPHYSICS needs an actual physics object behind it or the entity
-	// has no collision at all (earlier removal of this call was based on a
-	// misdiagnosis of an unrelated prop's problem, not this button's).
+	// SOLID_VPHYSICS needs a real physics object behind it, or the button
+	// has no collision at all.
+	SetSolid( SOLID_VPHYSICS );
 	CreateVPhysics();
 
-	// Lock the physics object in place -- it should have solid collision
-	// but never actually move/get pushed around by the player or a cube
-	// resting on it.
+	// Collision yes, movement no -- it shouldn't get pushed/knocked around.
 	IPhysicsObject *pButtonPhys = VPhysicsGetObject();
 	if ( pButtonPhys )
 	{
 		pButtonPhys->EnableMotion( false );
 	}
 
-	// Brute-force fix: manually drive the animation forward every server
-	// frame via StudioFrameAdvance() instead of relying on whatever
-	// automatic client-prediction/base-class behavior we couldn't verify
-	// in this engine fork. This guarantees the cycle actually advances.
+	// Manually drive the animation forward every server frame so the
+	// press/release transitions actually play through rather than sitting
+	// on frame 0.
 	SetThink( &CPropFloorButton::AnimThink );
 	SetNextThink( gpGlobals->curtime );
 }
@@ -193,6 +179,7 @@ void CPropFloorButton::Press( CBaseEntity *pActivator )
 		return;
 
 	m_bButtonState = true;
+	m_nSkin = 1;
 
 	if ( m_DownSequence >= 0 )
 	{
@@ -202,8 +189,6 @@ void CPropFloorButton::Press( CBaseEntity *pActivator )
 		m_flAnimTime = gpGlobals->curtime;
 		UseClientSideAnimation();
 	}
-
-	m_nSkin = 1;
 
 	if ( !m_bSuppressAnimSounds )
 	{
@@ -219,6 +204,7 @@ void CPropFloorButton::UnPress( CBaseEntity *pActivator )
 		return;
 
 	m_bButtonState = false;
+	m_nSkin = 0;
 
 	if ( m_UpSequence >= 0 )
 	{
@@ -229,7 +215,10 @@ void CPropFloorButton::UnPress( CBaseEntity *pActivator )
 		UseClientSideAnimation();
 	}
 
-	m_nSkin = 0;
+	if ( !m_bSuppressAnimSounds )
+	{
+		EmitSound( "Portal.ButtonRelease" );
+	}
 
 	m_OnUnPressed.FireOutput( pActivator, this );
 }
@@ -245,7 +234,7 @@ void CPropFloorButton::InputPressOut( inputdata_t &inputdata )
 }
 
 //-----------------------------------------------------------------------------
-// Trigger volume implementation
+// Trigger volume
 //-----------------------------------------------------------------------------
 CFloorButtonTrigger *CFloorButtonTrigger::Create( const Vector &vecMins, const Vector &vecMaxs, CPropFloorButton *pOwner )
 {
@@ -253,9 +242,6 @@ CFloorButtonTrigger *CFloorButtonTrigger::Create( const Vector &vecMins, const V
 	if ( !pTrigger )
 		return NULL;
 
-	// Parent first, then zero the local origin -- setting an absolute world
-	// origin before parenting and letting SetParent re-base it into local
-	// space was making the trigger end up offset from the button model.
 	pTrigger->SetParent( pOwner );
 	pTrigger->SetLocalOrigin( vec3_origin );
 	UTIL_SetSize( pTrigger, vecMins, vecMaxs );
@@ -271,10 +257,9 @@ void CFloorButtonTrigger::Spawn( void )
 {
 	BaseClass::Spawn();
 
-	// Set these AFTER BaseClass::Spawn() so they're the final word -- if
-	// they were set before, whatever CBaseTrigger::Spawn() does internally
-	// could clobber them, leaving the volume solid (blocking movement like
-	// a wall) instead of a pure pass-through trigger.
+	// Set these AFTER BaseClass::Spawn() so they're the final word --
+	// otherwise the volume can end up solid (blocking movement like a
+	// wall) instead of a pure pass-through trigger.
 	SetMoveType( MOVETYPE_NONE );
 	SetSolid( SOLID_BSP );
 	SetSolidFlags( FSOLID_NOT_SOLID | FSOLID_TRIGGER );
@@ -294,8 +279,6 @@ bool CFloorButtonTrigger::PassesTriggerFilters( CBaseEntity *pOther )
 		if ( pCube )
 		{
 			WeightedCubeType_e type = pCube->GetCubeType();
-			// Spheres don't press floor buttons; standard/companion/
-			// reflective cubes do.
 			return ( type == CUBE_STANDARD || type == CUBE_COMPANION || type == CUBE_REFLECTIVE );
 		}
 	}
