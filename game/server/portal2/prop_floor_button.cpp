@@ -133,8 +133,13 @@ void CPropFloorButton::Spawn( void )
 		// that transition, so force cycle to 1.0 instead of leaving it at
 		// the default start frame.
 		ResetSequence( m_UpSequence );
-		SetCycle( 1.0f );
 		ResetSequenceInfo();
+		// ResetSequenceInfo() just reset cycle to 0 -- override it now,
+		// AFTER, to get the static "released" end-pose instead of the
+		// pressed-looking start frame. Playback rate 0 because this is a
+		// static idle pose, not something that should animate on its own.
+		SetCycle( 1.0f );
+		SetPlaybackRate( 0.0f );
 		UseClientSideAnimation();
 	}
 
@@ -142,6 +147,15 @@ void CPropFloorButton::Spawn( void )
 	// has no collision at all (earlier removal of this call was based on a
 	// misdiagnosis of an unrelated prop's problem, not this button's).
 	CreateVPhysics();
+
+	// Lock the physics object in place -- it should have solid collision
+	// but never actually move/get pushed around by the player or a cube
+	// resting on it.
+	IPhysicsObject *pButtonPhys = VPhysicsGetObject();
+	if ( pButtonPhys )
+	{
+		pButtonPhys->EnableMotion( false );
+	}
 }
 
 void CPropFloorButton::Activate( void )
@@ -173,8 +187,8 @@ void CPropFloorButton::Press( CBaseEntity *pActivator )
 	if ( m_DownSequence >= 0 )
 	{
 		ResetSequence( m_DownSequence );
-		SetPlaybackRate( 1.0f );
 		ResetSequenceInfo();
+		SetPlaybackRate( 1.0f );
 		UseClientSideAnimation();
 	}
 
@@ -196,8 +210,8 @@ void CPropFloorButton::UnPress( CBaseEntity *pActivator )
 	if ( m_UpSequence >= 0 )
 	{
 		ResetSequence( m_UpSequence );
-		SetPlaybackRate( 1.0f );
 		ResetSequenceInfo();
+		SetPlaybackRate( 1.0f );
 		UseClientSideAnimation();
 	}
 
