@@ -62,7 +62,7 @@ jobs:
         env:
           GAME: ${{ inputs.game }}
           BUNDLE_NAME: ${{ inputs.game }}
-          BUNDLE_ID: ${{ inputs.bundle_id }}.${{ inputs.game }}
+          BUNDLE_ID: game-${{ inputs.bundle_id }}.${{ inputs.game }}
         run: scripts/ios/package-ipa.sh
 
       - name: Upload IPA artifact
