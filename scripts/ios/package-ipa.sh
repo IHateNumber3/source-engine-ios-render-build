@@ -231,7 +231,7 @@ echo "=== Verifying signature ==="
 codesign --verify --deep --strict "$APP_DIR"
 
 echo "=== Zipping IPA ==="
-IPA_PATH="$ROOT_DIR/game-$BUNDLE_NAME-$GAME.ipa"
+IPA_PATH="$ROOT_DIR/$BUNDLE_NAME-$GAME.ipa"
 rm -f "$IPA_PATH"
 cd "$ROOT_DIR"
 zip -qr "$IPA_PATH" "$(basename "$PAYLOAD_DIR")"
