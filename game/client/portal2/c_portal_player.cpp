@@ -305,6 +305,8 @@ void SpawnBlood (Vector vecSpot, const Vector &vecDir, int bloodColor, float flD
 C_Portal_Player::C_Portal_Player()
 : m_iv_angEyeAngles( "C_Portal_Player::m_iv_angEyeAngles" )
 {
+    m_flReorientStartTime = -1.0f;
+    m_flstartRoll = 0.0f;
 	m_PlayerAnimState = CreatePortalPlayerAnimState( this );
 
 	m_iIDEntIndex = 0;
