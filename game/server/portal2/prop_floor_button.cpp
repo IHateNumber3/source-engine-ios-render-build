@@ -66,6 +66,7 @@ public:
 	virtual void Spawn( void );
 	virtual void Activate( void );
 	virtual void UpdateOnRemove( void );
+	void AnimThink( void );
 
 	void Press( CBaseEntity *pActivator );
 	void UnPress( CBaseEntity *pActivator );
@@ -151,6 +152,19 @@ void CPropFloorButton::Spawn( void )
 	{
 		pButtonPhys->EnableMotion( false );
 	}
+
+	// Brute-force fix: manually drive the animation forward every server
+	// frame via StudioFrameAdvance() instead of relying on whatever
+	// automatic client-prediction/base-class behavior we couldn't verify
+	// in this engine fork. This guarantees the cycle actually advances.
+	SetThink( &CPropFloorButton::AnimThink );
+	SetNextThink( gpGlobals->curtime );
+}
+
+void CPropFloorButton::AnimThink( void )
+{
+	StudioFrameAdvance();
+	SetNextThink( gpGlobals->curtime );
 }
 
 void CPropFloorButton::Activate( void )
