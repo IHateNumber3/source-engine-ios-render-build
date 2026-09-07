@@ -37,7 +37,7 @@ jobs:
           fetch-depth: 1
 
       - name: Make iOS scripts executable
-        run: chmod +x scripts/ios/*.sh waf
+        run: chmod +x scripts/ios/*.sh waf -v
 
       - name: Cache iOS thirdparty deps + ANGLE
         id: deps-cache
