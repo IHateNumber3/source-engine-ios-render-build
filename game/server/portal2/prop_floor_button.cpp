@@ -98,7 +98,7 @@ void CPropFloorButton::Spawn( void )
 	// Not forcing any sequence at idle -- BindPose is the correct
 	// unpressed look; up/down only play as transitions in Press/UnPress.
 
-	SetSolid( SOLID_VPHYSICS );
+	//SetSolid( SOLID_VPHYSICS );
 	CreateVPhysics();
 	SetMoveType( MOVETYPE_NONE ); // never moved by gravity/physics/pushing
 
