@@ -1,4 +1,4 @@
-//========== Copyright © 2008, Valve Corporation, All rights reserved. ========
+//========== Copyright Â© 2008, Valve Corporation, All rights reserved. ========
 //
 // Purpose:
 //
@@ -8,6 +8,7 @@
 #define VSCRIPT_SHARED_H
 
 #include "vscript/ivscript.h"
+#include "tier0/logging.h"
 
 #if defined( _WIN32 )
 #pragma once
