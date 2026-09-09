@@ -675,7 +675,7 @@ void C_Portal_Player::FixTeleportationRoll( void )
 	}
 
 	// 2. Длительность всего поворота в секундах (на земле быстрее, в воздухе чуть дольше)
-	float flDuration = bOnGround ? 0.35f : 0.5f; 
+	float flDuration = bOnGround ? 0.7f : 0.7f; 
 
 	// Прогресс анимации от 0.0 (старт) до 1.0 (конец)
 	float flProgress = ( gpGlobals->curtime - m_flReorientStartTime ) / flDuration;
