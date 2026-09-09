@@ -203,6 +203,9 @@ public:
 	bool	m_bEyePositionIsTransformedByPortal; //when the eye and body positions are not on the same side of a portal
 	float	m_flReorientStartTime; // Время начала докрутки roll
 	float	m_flStartRoll;          // Исходный угол roll в момент начала поворота
+	float	m_flYawReorientStartTime; // Время начала плавного поворота yaw после портала
+	float	m_flStartYaw;             // Исходный (до трансформации) угол yaw
+	float	m_flTargetYaw;            // Целевой (после трансформации) угол yaw
 
 
 	CHandle<C_Prop_Portal>	m_hPortalEnvironment; //a portal whose environment the player is currently in, should be invalid most of the time
