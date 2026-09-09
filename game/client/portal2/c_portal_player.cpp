@@ -306,7 +306,10 @@ C_Portal_Player::C_Portal_Player()
 : m_iv_angEyeAngles( "C_Portal_Player::m_iv_angEyeAngles" )
 {
     m_flReorientStartTime = -1.0f;
-    m_flstartRoll = 0.0f;
+    m_flStartRoll = 0.0f;
+    m_flYawReorientStartTime = -1.0f;
+    m_flStartYaw = 0.0f;
+    m_flTargetYaw = 0.0f;
 	m_PlayerAnimState = CreatePortalPlayerAnimState( this );
 
 	m_iIDEntIndex = 0;
@@ -694,6 +697,26 @@ void C_Portal_Player::FixTeleportationRoll( void )
 		m_flStartRoll = 0.0f;
 	}
 
+	// Плавный доворот YAW после телепортации через портал, той же кривой что и roll
+	if ( m_flYawReorientStartTime >= 0.0f )
+	{
+		float flYawDuration = 0.35f; // такая же длительность, как roll на земле
+
+		float flYawProgress = ( gpGlobals->curtime - m_flYawReorientStartTime ) / flYawDuration;
+		flYawProgress = clamp( flYawProgress, 0.0f, 1.0f );
+
+		float flSmoothYawProgress = flYawProgress * flYawProgress * flYawProgress * ( flYawProgress * ( flYawProgress * 6.0f - 15.0f ) + 10.0f );
+
+		float flDeltaYaw = AngleNormalize( m_flTargetYaw - m_flStartYaw );
+		vAbsAngles[YAW] = AngleNormalize( m_flStartYaw + flDeltaYaw * flSmoothYawProgress );
+
+		if ( flYawProgress >= 1.0f )
+		{
+			vAbsAngles[YAW] = m_flTargetYaw;
+			m_flYawReorientStartTime = -1.0f;
+		}
+	}
+
 	// Применяем новые углы
 	engine->SetViewAngles( vAbsAngles );
 	m_angEyeAngles = vAbsAngles;
@@ -1012,10 +1035,22 @@ bool C_Portal_Player::DetectAndHandlePortalTeleportation( void )
 
 			PortalEyeInterpolation.m_bEyePositionIsInterpolating = true;
 
+			// Запоминаем yaw ДО трансформации как стартовую точку плавного поворота
+			m_flStartYaw = m_qEyeAngles_LastCalcView.y;
+
 			UTIL_Portal_AngleTransform( m_PendingPortalMatrix, m_qEyeAngles_LastCalcView, m_angEyeAngles );
 			m_angEyeAngles.x = AngleNormalize( m_angEyeAngles.x );
 			m_angEyeAngles.y = AngleNormalize( m_angEyeAngles.y );
 			m_angEyeAngles.z = AngleNormalize( m_angEyeAngles.z );
+
+			// Целевой yaw — куда должны прийти после портала
+			m_flTargetYaw = m_angEyeAngles.y;
+			m_flYawReorientStartTime = gpGlobals->curtime;
+
+			// Пока не начали плавный доворот, оставляем угол на стартовом значении,
+			// а не сразу прыгаем на целевое -- доворот сделает FixTeleportationRoll()
+			m_angEyeAngles.y = m_flStartYaw;
+
 			m_iv_angEyeAngles.Reset(); //copies from m_angEyeAngles
 
 			if( engine->IsPlayingDemo() )
