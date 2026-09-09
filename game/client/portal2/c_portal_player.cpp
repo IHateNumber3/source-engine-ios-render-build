@@ -890,6 +890,11 @@ bool C_Portal_Player::ShouldDraw( void )
 	return BaseClass::ShouldDraw();
 }
 
+const QAngle& C_Portal_Player::GetRenderAngles()
+{
+	return m_angEyeAngles;
+}
+
 const QAngle& C_Portal_Player::EyeAngles()
 {
 	if ( IsLocalPlayer() && g_nKillCamMode == OBS_MODE_NONE )
