@@ -98,7 +98,7 @@ void CPropFloorButton::Spawn( void )
 	// Not forcing any sequence at idle -- BindPose is the correct
 	// unpressed look; up/down only play as transitions in Press/UnPress.
 
-	//SetSolid( SOLID_VPHYSICS );
+	SetSolid( SOLID_VPHYSICS );
 	CreateVPhysics();
 	SetMoveType( MOVETYPE_NONE ); // never moved by gravity/physics/pushing
 
@@ -117,7 +117,7 @@ void CPropFloorButton::Spawn( void )
 	// -- add it defensively alongside the real solid collision so touch
 	// callbacks are guaranteed to fire even if the stock solid-object touch
 	// path doesn't in this fork.
-	AddSolidFlags( FSOLID_TRIGGER );
+	///AddSolidFlags( FSOLID_TRIGGER );
 
 	SetThink( &CPropFloorButton::AnimThink );
 	SetNextThink( gpGlobals->curtime );
