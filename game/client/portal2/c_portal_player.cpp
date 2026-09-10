@@ -667,89 +667,58 @@ void C_Portal_Player::FixTeleportationRoll( void )
 	if ( !cl_reorient_in_air.GetBool() && !bOnGround )
 		return;
 
-	// 1. Фиксируем начальный момент и угол
+	// 1. Фиксируем начальный момент и угол, когда нас впервые «перекосило»
 	if ( m_flReorientStartTime < 0.0f || m_flStartRoll == 0.0f )
 	{
 		m_flReorientStartTime = gpGlobals->curtime;
 		m_flStartRoll = vAbsAngles[ROLL];
 	}
 
-	// Общая длительность поворота
-	float flDuration = 0.7f; 
-	float t = ( gpGlobals->curtime - m_flReorientStartTime ) / flDuration;
-	t = clamp( t, 0.0f, 1.0f );
+	// 2. Длительность всего поворота в секундах (на земле быстрее, в воздухе чуть дольше)
+	float flDuration = bOnGround ? 0.35f : 0.5f; 
 
-	// ---------------------------------------------------------------------
-	// МАТЕМАТИКА: Linear -> Cubic Ease-Out на последних 10% дистанции
-	// ---------------------------------------------------------------------
-	// Phase 1 (0.0 -> 0.9): Линейное движение на 90% пути
-	// Phase 2 (0.9 -> 1.0): Плавное замедление Ease-Out на оставшихся 10%
-	// ---------------------------------------------------------------------
-	float flProgress = 0.0f;
-	const float flLinearCutoff = 0.9f; // Точка перехода на Ease-Out
+	// Прогресс анимации от 0.0 (старт) до 1.0 (конец)
+	float flProgress = ( gpGlobals->curtime - m_flReorientStartTime ) / flDuration;
+	flProgress = clamp( flProgress, 0.0f, 1.0f );
 
-	if ( t < flLinearCutoff )
-	{
-		// Линейная фаза (скорость = constant)
-		flProgress = t;
-	}
-	else
-	{
-		// Фаза Ease-Out замедления
-		// Нормализуем остаток времени t от [0.9 .. 1.0] в [0.0 .. 1.0]
-		float flEaseTime = ( t - flLinearCutoff ) / ( 1.0f - flLinearCutoff );
-		
-		// Cubic Ease-Out кривая
-		float flEaseFactor = 1.0f - powf( 1.0f - flEaseTime, 3.0f );
+	// 3. МАТЕМАТИКА PORTAL 2: Квинтический сплайн (Smoothstep с ускорением в начале и замедлением в конце)
+	// Формула: t * t * t * (t * (t * 6 - 15) + 10)
+	// Дает идеально гладкую S-образную кривую скорости
+	float flSmoothProgress = flProgress * flProgress * flProgress * ( flProgress * ( flProgress * 6.0f - 15.0f ) + 10.0f );
 
-		// Добавляем сглаженный остаток к линейной базе
-		flProgress = flLinearCutoff + ( 1.0f - flLinearCutoff ) * flEaseFactor;
-	}
+	// Интерполируем от начального угла к 0
+	vAbsAngles[ROLL] = SimpleSplineRemapValClamped( flSmoothProgress, 0.0f, 1.0f, m_flStartRoll, 0.0f );
 
-	// Интерполируем от начального ROLL к 0
-	vAbsAngles[ROLL] = SimpleSplineRemapValClamped( flProgress, 0.0f, 1.0f, m_flStartRoll, 0.0f );
-
-	// 2. Доводка микро-градусов в самом конце
-	if ( t >= 1.0f || fabs( vAbsAngles[ROLL] ) < 0.01f )
+	// 4. Доводка микро-градусов в конце, чтобы не было дребезга
+	if ( flProgress >= 1.0f || fabs( vAbsAngles[ROLL] ) < 0.01f )
 	{
 		vAbsAngles[ROLL] = 0.0f;
 		m_flReorientStartTime = -1.0f;
 		m_flStartRoll = 0.0f;
 	}
 
-	// ---------------------------------------------------------------------
-	// Аналогично для YAW (плавный доворот взгляда после портала)
-	// ---------------------------------------------------------------------
+	// Плавный доворот YAW после телепортации через портал, той же кривой что и roll
 	if ( m_flYawReorientStartTime >= 0.0f )
 	{
-		float flYawDuration = 0.35f;
-		float tYaw = ( gpGlobals->curtime - m_flYawReorientStartTime ) / flYawDuration;
-		tYaw = clamp( tYaw, 0.0f, 1.0f );
+		float flYawDuration = 0.35f; // такая же длительность, как roll на земле
 
-		float flYawProgress = 0.0f;
+		float flYawProgress = ( gpGlobals->curtime - m_flYawReorientStartTime ) / flYawDuration;
+		flYawProgress = clamp( flYawProgress, 0.0f, 1.0f );
 
-		if ( tYaw < flLinearCutoff )
-		{
-			flYawProgress = tYaw;
-		}
-		else
-		{
-			float flEaseTime = ( tYaw - flLinearCutoff ) / ( 1.0f - flLinearCutoff );
-			float flEaseFactor = 1.0f - powf( 1.0f - flEaseTime, 3.0f );
-			flYawProgress = flLinearCutoff + ( 1.0f - flLinearCutoff ) * flEaseFactor;
-		}
+		float flInvProgress = 1.0f - flYawProgress;
+		float flSmoothYawProgress = 1.0f - ( flInvProgress * flInvProgress * flInvProgress );
 
 		float flDeltaYaw = AngleNormalize( m_flTargetYaw - m_flStartYaw );
-		vAbsAngles[YAW] = AngleNormalize( m_flStartYaw + flDeltaYaw * flYawProgress );
+		vAbsAngles[YAW] = AngleNormalize( m_flStartYaw + flDeltaYaw * flSmoothYawProgress );
 
-		if ( tYaw >= 1.0f )
+		if ( flYawProgress >= 1.0f )
 		{
 			vAbsAngles[YAW] = m_flTargetYaw;
 			m_flYawReorientStartTime = -1.0f;
 		}
 	}
 
-	// Применяем итоговые углы
+	// Применяем новые углы
 	engine->SetViewAngles( vAbsAngles );
 	m_angEyeAngles = vAbsAngles;
 	m_iv_angEyeAngles.Reset();
