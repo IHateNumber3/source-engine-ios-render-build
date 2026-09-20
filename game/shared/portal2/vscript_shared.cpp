@@ -1,4 +1,4 @@
-//========== Copyright © 2008, Valve Corporation, All rights reserved. ========
+//========== Copyright Â© 2008, Valve Corporation, All rights reserved. ========
 //
 // Purpose:
 //
@@ -13,6 +13,13 @@
 #include "characterset.h"
 #include "isaverestore.h"
 #include "gamerules.h"
+
+// CON_COMMAND_SHARED isn't a stock macro in this SDK -- client and server
+// build into separate dylibs on this engine, so there's no symbol clash
+// to guard against; it can just alias the normal CON_COMMAND.
+#ifndef CON_COMMAND_SHARED
+#define CON_COMMAND_SHARED( name, description ) CON_COMMAND( name, description )
+#endif
 
 IScriptVM * g_pScriptVM;
 extern ScriptClassDesc_t * GetScriptDesc( CBaseEntity * );
