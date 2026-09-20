@@ -309,6 +309,7 @@ public:
 //-----------------------------------------------------------------------------
 // A basic logging listener for GUI applications
 //-----------------------------------------------------------------------------
+#if defined( _WIN32 )
 class CSimpleWindowsLoggingListener : public ILoggingListener
 {
 public:
@@ -327,6 +328,7 @@ public:
 		}
 	}
 };
+#endif // _WIN32
 
 
 //-----------------------------------------------------------------------------
@@ -337,7 +339,7 @@ public:
 // A logging listener with Win32 console API color support which which prints 
 // to stdout and the debug channel.
 //-----------------------------------------------------------------------------
-#ifndef _X360
+#if defined( _WIN32 ) && !defined( _X360 )
 class CColorizedLoggingListener : public CSimpleLoggingListener
 {
 public:
@@ -377,7 +379,7 @@ public:
 
 	Win32ConsoleColorContext_t m_ColorContext;
 };
-#endif // !_X360
+#endif // _WIN32 && !_X360
 
 
 //-----------------------------------------------------------------------------
