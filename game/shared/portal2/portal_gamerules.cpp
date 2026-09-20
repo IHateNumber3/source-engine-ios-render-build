@@ -1282,3 +1282,17 @@ CAmmoDef *GetAmmoDef()
 	return &def;
 }
 
+void CPortalGameRules::RegisterScriptFunctions( void )
+{
+	if ( !g_pScriptVM )
+		return;
+
+#ifndef CLIENT_DLL
+	ScriptRegisterFunction( g_pScriptVM, IsMultiplayer, "Returns true if the game is running in multiplayer mode" );
+#endif
+}
+
+static bool IsMultiplayer( void )
+{
+	return ( gpGlobals->maxClients > 1 );
+}
