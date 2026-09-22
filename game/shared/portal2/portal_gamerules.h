@@ -112,5 +112,9 @@ inline CPortalGameRules* PortalGameRules()
 	return static_cast<CPortalGameRules*>(g_pGameRules);
 }
 
+
+void RegisterScriptFunctions( void );
+
+
 #endif // PORTAL_GAMERULES_H
 #endif
