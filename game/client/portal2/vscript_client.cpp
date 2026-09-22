@@ -1,4 +1,4 @@
-//========== Copyright © 2008, Valve Corporation, All rights reserved. ========
+//========== Copyright Â© 2008, Valve Corporation, All rights reserved. ========
 //
 // Purpose:
 //
@@ -106,9 +106,9 @@ bool VScriptClientInit()
 				ScriptRegisterFunction( g_pScriptVM, Time, "Get the current server time" );
 				ScriptRegisterFunction( g_pScriptVM, DoIncludeScript, "Execute a script (internal)" );
 				
-				if ( GameRules() )
+				if ( PortalGameRules() )
 				{
-					GameRules()->RegisterScriptFunctions();
+					PortalGameRules()->RegisterScriptFunctions();
 				}
 
 				//g_pScriptVM->RegisterInstance( &g_ScriptEntityIterator, "Entities" );
