@@ -13,6 +13,8 @@
 #include "characterset.h"
 #include "isaverestore.h"
 #include "gamerules.h"
+#include "portal_gamerules.h"
+
 #ifdef _WIN32
 //#include "vscript_client_nut.h"
 #endif
