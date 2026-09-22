@@ -50,7 +50,7 @@ public:
 	
 	virtual bool	ShouldCollide( int collisionGroup0, int collisionGroup1 );
 	virtual bool	ShouldUseRobustRadiusDamage(CBaseEntity *pEntity);
-    void RegisterScriptFunctions( void );
+    virtual void RegisterScriptFunctions( void );
 #ifndef CLIENT_DLL
 	virtual bool	ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target );
 	virtual float	GetAutoAimScale( CBasePlayer *pPlayer );
