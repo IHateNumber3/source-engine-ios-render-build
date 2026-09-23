@@ -1,37 +1,31 @@
 //========= Copyright Valve Corporation, All rights reserved. ============//
 //
-// Purpose: Game rules for Portal.
+// Purpose: Game rules for Portal (Adapted for Alien Swarm Engine)
 //
 //=============================================================================//
 
 #ifdef PORTAL_MP
 
-
-
-#include "portal_mp_gamerules.h" //redirect to multiplayer gamerules in multiplayer builds
-
-
+#include "portal_mp_gamerules.h" // Redirect to multiplayer gamerules in multiplayer builds
 
 #else
 
 #ifndef PORTAL_GAMERULES_H
 #define PORTAL_GAMERULES_H
+
 #ifdef _WIN32
 #pragma once
 #endif
 
 #include "gamerules.h"
 #include "hl2_gamerules.h"
+#include "convar.h"
 
 #ifdef CLIENT_DLL
 	#define CPortalGameRules C_PortalGameRules
 	#define CPortalGameRulesProxy C_PortalGameRulesProxy
+	#include "steam/steam_api.h"
 #endif
-
-#if defined ( CLIENT_DLL )
-#include "steam/steam_api.h"
-#endif
-
 
 class CPortalGameRulesProxy : public CGameRulesProxy
 {
@@ -40,37 +34,28 @@ public:
 	DECLARE_NETWORKCLASS();
 };
 
-
 class CPortalGameRules : public CHalfLife2
 {
 public:
-	DECLARE_CLASS( CPortalGameRules, CSingleplayRules );
+	// Исправлено: указан правильный базовый класс CHalfLife2
+	DECLARE_CLASS( CPortalGameRules, CHalfLife2 );
 
 	virtual bool	Init();
 	
 	virtual bool	ShouldCollide( int collisionGroup0, int collisionGroup1 );
-	virtual bool	ShouldUseRobustRadiusDamage(CBaseEntity *pEntity);
-    virtual void RegisterScriptFunctions( void );
+	virtual bool	ShouldUseRobustRadiusDamage( CBaseEntity *pEntity );
+	virtual void	RegisterScriptFunctions( void );
+
 #ifndef CLIENT_DLL
 	virtual bool	ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target );
 	virtual float	GetAutoAimScale( CBasePlayer *pPlayer );
 #endif
 
 #ifdef CLIENT_DLL
-	virtual bool IsBonusChallengeTimeBased( void );
-#endif
-
-private:
-	// Rules change for the mega physgun
-	CNetworkVar( bool, m_bMegaPhysgun );
-
-#ifdef CLIENT_DLL
-
-	DECLARE_CLIENTCLASS_NOBASE(); // This makes datatables able to access our private vars.
-
+	virtual bool	IsBonusChallengeTimeBased( void );
+	DECLARE_CLIENTCLASS();
 #else
-
-	DECLARE_SERVERCLASS_NOBASE(); // This makes datatables able to access our private vars.
+	DECLARE_SERVERCLASS();
 
 	CPortalGameRules();
 	virtual ~CPortalGameRules() {}
@@ -81,39 +66,36 @@ private:
 	virtual void			PlayerSpawn( CBasePlayer *pPlayer );
 
 	virtual void			InitDefaultAIRelationships( void );
-	virtual const char*		AIClassText(int classType);
-	virtual const char *GetGameDescription( void ) { return "Portal"; }
+	virtual const char*		AIClassText( int classType );
+	virtual const char*		GetGameDescription( void ) { return "Portal"; }
 
-	// Ammo
+	// Ammo & Player
 	virtual void			PlayerThink( CBasePlayer *pPlayer );
 	virtual float			GetAmmoDamage( CBaseEntity *pAttacker, CBaseEntity *pVictim, int nAmmoType );
 
 	virtual bool			ShouldBurningPropsEmitLight();
+	bool					ShouldRemoveRadio( void );
 
-	bool ShouldRemoveRadio( void );
-	
 public:
-
-	virtual float FlPlayerFallDamage( CBasePlayer *pPlayer );
-
-	bool	MegaPhyscannonActive( void ) { return m_bMegaPhysgun;	}
+	virtual float			FlPlayerFallDamage( CBasePlayer *pPlayer );
+	bool					MegaPhyscannonActive( void ) { return m_bMegaPhysgun; }
 
 private:
-
 	int						DefaultFOV( void ) { return 75; }
 #endif
+
+private:
+	// Переменная состояния супер-гравипушки
+	CNetworkVar( bool, m_bMegaPhysgun );
 };
 
-
 //-----------------------------------------------------------------------------
-// Gets us at the Half-Life 2 game rules
+// Глобальный доступ к правилам игры Portal
 //-----------------------------------------------------------------------------
 inline CPortalGameRules* PortalGameRules()
 {
 	return static_cast<CPortalGameRules*>(g_pGameRules);
 }
-
-
 
 #endif // PORTAL_GAMERULES_H
 #endif
