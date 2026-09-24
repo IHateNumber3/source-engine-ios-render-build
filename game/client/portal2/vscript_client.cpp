@@ -108,10 +108,6 @@ bool VScriptClientInit()
 				ScriptRegisterFunction( g_pScriptVM, Time, "Get the current server time" );
 				ScriptRegisterFunction( g_pScriptVM, DoIncludeScript, "Execute a script (internal)" );
 				
-				if ( PortalGameRules() )
-				{
-					PortalGameRules()->RegisterScriptFunctions();
-				}
 
 				//g_pScriptVM->RegisterInstance( &g_ScriptEntityIterator, "Entities" );
 
