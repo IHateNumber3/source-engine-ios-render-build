@@ -40,30 +40,12 @@ jobs:
         run: chmod +x scripts/ios/*.sh waf
 
       - name: Inject VScript and generate wscript
-        if: inputs.game == 'portal2' || inputs.game == 'portal'
+        if: ${{ inputs.game == 'portal2' || inputs.game == 'portal' }}
         run: |
-          echo "===> Portal/Portal 2 detected, cloning VScript from CS:GO 2017 leak..."
           git clone --depth 1 https://github.com/perilouswithadollarsign/cstrike15_src.git temp_leak
-          
-          echo "===> Copying vscript folder..."
           cp -r temp_leak/vscript ./
           rm -rf temp_leak
-
-          echo "===> Creating vscript/wscript..."
-          cat << 'EOF' > vscript/wscript
-#! /usr/bin/env python
-# encoding: utf-8
-
-def build(bld):
-    bld(
-        features     = 'cxx cxxstlib',
-        source       = bld.path.ant_glob('**/*.cpp'),
-        target       = 'vscript',
-        includes     = '. languages languages/squirrel include ../public ../common',
-        cxxflags     = ['-std=c++11', '-Wno-write-strings', '-Wno-invalid-offsetof'],
-    )
-EOF
-          echo "===> VScript successfully injected for Portal series!"
+          echo "IyEgL3Vzci9iaW4vZW52IHB5dGhvbg4jIGVuY29kaW5nOiB1dGYtOAoKZGVmIGJ1aWxkKGJsZCk6CiAgICBibGQoCiAgICAgICAgZmVhdHVyZXMgICAgID0gJ2N4eCBjeHhzdGxpYicsCiAgICAgICAgc291cmNlICAgICAgID0gYmxkLnBhdGguYW50X2dsb2IoJyoqLyouY3BwJyksCiAgICAgICAgdGFyZ2V0ICAgICAgID0gJ3ZzY3JpcHQnLAogICAgICAgIGluY2x1ZGVzICAgICA9ICcuIGxhbmd1YWdlcyBsYW5ndWFnZXMvc3F1aXJyZWwgaW5jbHVkZSAuLi9wdWJsaWMgLi4vY29tbW9uJywKICAgICAgICBjeHhmbGFncyAgICAgPSBbJy1zdGQ9YysrMTEnLCAnLVduby13cml0ZS1zdHJpbmdzJywgJy1Xbm8taW52YWxpZC1vZmZzZXQnXSwKICAgICk=" | base64 -d > vscript/wscript
 
       - name: Cache iOS thirdparty deps + ANGLE
         id: deps-cache
