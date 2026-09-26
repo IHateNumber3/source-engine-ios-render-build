@@ -39,7 +39,31 @@ jobs:
       - name: Make iOS scripts executable
         run: chmod +x scripts/ios/*.sh waf
 
+      - name: Inject VScript and generate wscript
+        if: inputs.game == 'portal2' || inputs.game == 'portal'
+        run: |
+          echo "===> Portal/Portal 2 detected, cloning VScript from CS:GO 2017 leak..."
+          git clone --depth 1 https://github.com/perilouswithadollarsign/cstrike15_src.git temp_leak
+          
+          echo "===> Copying vscript folder..."
+          cp -r temp_leak/vscript ./
+          rm -rf temp_leak
 
+          echo "===> Creating vscript/wscript..."
+          cat << 'EOF' > vscript/wscript
+#! /usr/bin/env python
+# encoding: utf-8
+
+def build(bld):
+    bld(
+        features     = 'cxx cxxstlib',
+        source       = bld.path.ant_glob('**/*.cpp'),
+        target       = 'vscript',
+        includes     = '. languages languages/squirrel include ../public ../common',
+        cxxflags     = ['-std=c++11', '-Wno-write-strings', '-Wno-invalid-offsetof'],
+    )
+EOF
+          echo "===> VScript successfully injected for Portal series!"
 
       - name: Cache iOS thirdparty deps + ANGLE
         id: deps-cache
