@@ -42,10 +42,12 @@ jobs:
       - name: Inject VScript and generate wscript
         if: ${{ inputs.game == 'portal2' || inputs.game == 'portal' }}
         run: |
-          git clone --depth 1 https://github.com/perilouswithadollarsign/cstrike15_src.git temp_leak
+          echo "===> Portal series detected. Injecting VScript..."
+          GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 https://github.com/perilouswithadollarsign/cstrike15_src.git temp_leak
           cp -r temp_leak/vscript ./
           rm -rf temp_leak
           echo "IyEgL3Vzci9iaW4vZW52IHB5dGhvbg4jIGVuY29kaW5nOiB1dGYtOAoKZGVmIGJ1aWxkKGJsZCk6CiAgICBibGQoCiAgICAgICAgZmVhdHVyZXMgICAgID0gJ2N4eCBjeHhzdGxpYicsCiAgICAgICAgc291cmNlICAgICAgID0gYmxkLnBhdGguYW50X2dsb2IoJyoqLyouY3BwJyksCiAgICAgICAgdGFyZ2V0ICAgICAgID0gJ3ZzY3JpcHQnLAogICAgICAgIGluY2x1ZGVzICAgICA9ICcuIGxhbmd1YWdlcyBsYW5ndWFnZXMvc3F1aXJyZWwgaW5jbHVkZSAuLi9wdWJsaWMgLi4vY29tbW9uJywKICAgICAgICBjeHhmbGFncyAgICAgPSBbJy1zdGQ9YysrMTEnLCAnLVduby13cml0ZS1zdHJpbmdzJywgJy1Xbm8taW52YWxpZC1vZmZzZXQnXSwKICAgICk=" | base64 -d > vscript/wscript
+          echo "===> VScript successfully injected!"
 
       - name: Cache iOS thirdparty deps + ANGLE
         id: deps-cache
