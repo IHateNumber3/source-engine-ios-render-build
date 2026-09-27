@@ -37,7 +37,8 @@
 #endif
 
 // memdbgon must be the last include file in a .cpp file!!!
-#include "tier0/#include "convar.h"
+#include "tier0/
+#include "convar.h"
 
 ConVar locator_background_border_color("locator_background_border_color", "0 0 0 0");
 ConVar locator_background_color("locator_background_color", "0 0 0 0");
