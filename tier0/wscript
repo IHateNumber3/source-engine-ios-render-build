@@ -51,6 +51,7 @@ def build(bld):
 		'tslist.cpp',
 		'vprof.cpp',
 		#'../tier1/pathmatch.cpp' # [$LINUXALL]
+        'logging.cpp'
 	]
 	
 	if bld.env.DEST_OS == 'win32':
