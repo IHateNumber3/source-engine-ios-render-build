@@ -230,6 +230,10 @@ void C_PortalRagdoll::CreatePortalRagdoll()
 		m_nBody = pPlayer->GetBody();
 		SetModelIndex( m_nModelIndex );	
 		// Make us a ragdoll..
+		#ifndef kRenderFxRagdoll
+        #define kRenderFxRagdoll kRenderFxNone
+        #endif
+
 		m_nRenderFX = kRenderFxRagdoll;
 
 		matrix3x4_t boneDelta0[MAXSTUDIOBONES];
