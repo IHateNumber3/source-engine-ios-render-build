@@ -19,6 +19,8 @@
 //#include "vscript_client_nut.h"
 #endif
 
+IScriptManager *scriptmanager = nullptr;
+
 extern IScriptManager *scriptmanager;
 extern ScriptClassDesc_t * GetScriptDesc( CBaseEntity * );
 
