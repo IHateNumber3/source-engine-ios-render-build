@@ -234,6 +234,6 @@ echo "=== Zipping IPA ==="
 IPA_PATH="$ROOT_DIR/game-$BUNDLE_NAME-$GAME.ipa"
 rm -f "$IPA_PATH"
 cd "$ROOT_DIR"
-zip -qr "$IPA_PATH" "$(basename "$PAYLOAD_DIR")"
+ditto -ck --sequesterRsrc --keepParent "$PAYLOAD_DIR" "$IPA_PATH"
 
 echo "=== Done: $IPA_PATH ==="
