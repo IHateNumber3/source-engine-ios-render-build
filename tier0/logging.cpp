@@ -6,12 +6,22 @@
 
 #include "pch_tier0.h"
 
-// Снимаем определение из dbg.h, чтобы logging.h не ругался на переопределение
+// Сбрасываем заглушки из dbg.h перед подключением настоящих макросов из logging.h
 #ifdef DEFINE_LOGGING_CHANNEL_NO_TAGS
 #undef DEFINE_LOGGING_CHANNEL_NO_TAGS
 #endif
+#ifdef BEGIN_DEFINE_LOGGING_CHANNEL
+#undef BEGIN_DEFINE_LOGGING_CHANNEL
+#endif
+#ifdef END_DEFINE_LOGGING_CHANNEL
+#undef END_DEFINE_LOGGING_CHANNEL
+#endif
+#ifdef ADD_LOGGING_CHANNEL_TAG
+#undef ADD_LOGGING_CHANNEL_TAG
+#endif
 
-#include "logging.h"
+#include "tier0/logging.h"
+
 
 #include <string.h>
 #include "dbg.h"
