@@ -12,6 +12,12 @@
 #include "threadtools.h"
 #include "tier0_strtools.h" // this is from tier1, but only included for inline definition of V_isspace
 
+#include <stdio.h>
+#ifndef Tier0Internal_vsntprintf
+#define Tier0Internal_vsntprintf vsnprintf
+#endif
+
+
 #ifdef _PS3
 #include <sys/tty.h>
 #endif
