@@ -311,6 +311,7 @@ public:
 //-----------------------------------------------------------------------------
 // A basic logging listener for GUI applications
 //-----------------------------------------------------------------------------
+#if defined( _WIN32 )
 class CSimpleWindowsLoggingListener : public ILoggingListener
 {
 public:
@@ -329,6 +330,7 @@ public:
 		}
 	}
 };
+#endif
 
 
 //-----------------------------------------------------------------------------
