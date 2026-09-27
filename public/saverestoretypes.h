@@ -17,6 +17,8 @@
 
 #include "tier1/utlhash.h"
 
+#include "bspfile.h"
+
 #include <string_t.h> // NULL_STRING define
 struct edict_t;
 
