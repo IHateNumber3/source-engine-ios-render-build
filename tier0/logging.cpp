@@ -5,6 +5,12 @@
 //===============================================================================
 
 #include "pch_tier0.h"
+
+// Снимаем определение из dbg.h, чтобы logging.h не ругался на переопределение
+#ifdef DEFINE_LOGGING_CHANNEL_NO_TAGS
+#undef DEFINE_LOGGING_CHANNEL_NO_TAGS
+#endif
+
 #include "logging.h"
 
 #include <string.h>
