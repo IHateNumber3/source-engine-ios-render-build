@@ -24,6 +24,10 @@
 #define INVALID_STEAM_VACBANSTATE "VAC banned from secure server\n"
 #define INVALID_STEAM_LOGGED_IN_ELSEWHERE "This Steam account is being used in another location\n"
 
+#define INVALID_STEAM_LOGON_TICKET_CANCELED "Steam ticket canceled\n"
+#define INVALID_STEAM_LOGON_NOT_CONNECTED "Steam not connected\n"
+
+
 #define DEFAULT_TICK_INTERVAL_X360	(1.0 / 29.970030) // This matches x360 refresh, but is not critical
 #define DEFAULT_TICK_INTERVAL_PS3	(1.0 / 30.0)
 #define DEFAULT_TICK_INTERVAL_PC	(1.0 / 64.0)
