@@ -17,7 +17,9 @@
 
 #include "tier1/utlhash.h"
 
-#include "bspfile.h"
+#ifndef MAX_MAP_NAME_SAVE
+#define MAX_MAP_NAME_SAVE 32
+#endif
 
 #include <string_t.h> // NULL_STRING define
 struct edict_t;
