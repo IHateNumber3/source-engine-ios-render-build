@@ -37,7 +37,22 @@
 #endif
 
 // memdbgon must be the last include file in a .cpp file!!!
-#include "tier0/memdbgon.h"
+#include "tier0/#include "convar.h"
+
+ConVar locator_background_border_color("locator_background_border_color", "0 0 0 0");
+ConVar locator_background_color("locator_background_color", "0 0 0 0");
+ConVar locator_background_shift_x("locator_background_shift_x", "0");
+ConVar locator_background_shift_y("locator_background_shift_y", "0");
+ConVar locator_background_style("locator_background_style", "0");
+ConVar locator_background_thickness_x("locator_background_thickness_x", "0");
+ConVar locator_background_thickness_y("locator_background_thickness_y", "0");
+ConVar locator_icon_max_size_non_ss("locator_icon_max_size_non_ss", "0");
+ConVar locator_icon_min_size_non_ss("locator_icon_min_size_non_ss", "0");
+ConVar locator_lerp_rest("locator_lerp_rest", "0");
+ConVar locator_start_at_crosshair("locator_start_at_crosshair", "0");
+ConVar locator_target_offset_x("locator_target_offset_x", "0");
+ConVar locator_target_offset_y("locator_target_offset_y", "0");
+ConVar locator_topdown_style("locator_topdown_style", "0");
 
 #ifdef CLIENT_DLL
 	extern ConVar locator_lerp_rest;
