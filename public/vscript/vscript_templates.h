@@ -1,4 +1,4 @@
-//========== Copyright © 2008, Valve Corporation, All rights reserved. ========
+//========== Copyright (c) 2008, Valve Corporation, All rights reserved. ========
 //
 // Purpose:
 //
@@ -73,10 +73,107 @@ FUNC_GENERATE_ALL( DEFINE_CONST_MEMBER_FUNC_TYPE_DEDUCER );
 //-----------------------------------------------------------------------------
 
 template <typename FUNCPTR_TYPE>
-inline void *ScriptConvertFuncPtrToVoid( FUNCPTR_TYPE pFunc )
+inline ScriptFunctionBindingStorageType_t ScriptConvertFreeFuncPtrToVoid( FUNCPTR_TYPE pFunc )
 {
+#if defined(_PS3) || defined(POSIX)
+	COMPILE_TIME_ASSERT( sizeof( FUNCPTR_TYPE ) == sizeof( void* ) * 2 || sizeof( FUNCPTR_TYPE ) == sizeof( void* ) );
+	
+	if ( sizeof( FUNCPTR_TYPE ) == 4 )
+	{
+		union FuncPtrConvertMI
+		{
+			FUNCPTR_TYPE pFunc;
+			ScriptFunctionBindingStorageType_t stype;
+		};
+
+		FuncPtrConvertMI convert;
+		convert.pFunc = pFunc;
+		return convert.stype;
+	}
+	else
+	{
+		union FuncPtrConvertMI
+		{
+			FUNCPTR_TYPE pFunc;
+			struct
+			{
+				ScriptFunctionBindingStorageType_t stype;
+				intptr_t iToc;
+			} fn8;
+		};
+
+		FuncPtrConvertMI convert;
+		convert.fn8.iToc = 0;
+		convert.pFunc = pFunc;
+		if ( !convert.fn8.iToc )
+			return convert.fn8.stype;
+		
+		Assert( 0 );
+		DebuggerBreak();
+		return 0;
+	}
+#else
+	return ( ScriptFunctionBindingStorageType_t ) pFunc;
+#endif
+}
+
+template <typename FUNCPTR_TYPE>
+inline FUNCPTR_TYPE ScriptConvertFreeFuncPtrFromVoid( ScriptFunctionBindingStorageType_t p )
+{
+#if defined(_PS3) || defined(POSIX)
+	COMPILE_TIME_ASSERT( sizeof( FUNCPTR_TYPE ) == sizeof(void*)*2 || sizeof( FUNCPTR_TYPE ) == sizeof(void*) );
+
+	if ( sizeof( FUNCPTR_TYPE ) == 4 )
+	{
+		union FuncPtrConvertMI
+		{
+			FUNCPTR_TYPE pFunc;
+			ScriptFunctionBindingStorageType_t stype;
+		};
+
+		FuncPtrConvertMI convert;
+		convert.pFunc = 0;
+		convert.stype = p;
+		return convert.pFunc;
+	}
+	else
+	{
+		union FuncPtrConvertMI
+		{
+			FUNCPTR_TYPE pFunc;
+			struct
+			{
+				ScriptFunctionBindingStorageType_t stype;
+				intptr_t iToc;
+			} fn8;
+		};
+
+		FuncPtrConvertMI convert;
+		convert.pFunc = 0;
+		convert.fn8.stype = p;
+		convert.fn8.iToc = 0;
+		return convert.pFunc;
+	}
+
+
+#else
+	return (FUNCPTR_TYPE) p;
+#endif
+}
+
+template <typename FUNCPTR_TYPE>
+inline ScriptFunctionBindingStorageType_t ScriptConvertFuncPtrToVoid( FUNCPTR_TYPE pFunc )
+{
+	typedef FUNCPTR_TYPE FuncPtr_t;
+	size_t funcPtrSize = sizeof( FuncPtr_t ); funcPtrSize;
+
+#if defined(_PS3) || defined(POSIX)
+	return ScriptConvertFreeFuncPtrToVoid<FUNCPTR_TYPE>( pFunc );
+#else
+
 	if ( ( sizeof( FUNCPTR_TYPE ) == sizeof( void * ) ) )
 	{
+		// simple inheritance
 		union FuncPtrConvert
 		{
 			void *p;
@@ -88,8 +185,10 @@ inline void *ScriptConvertFuncPtrToVoid( FUNCPTR_TYPE pFunc )
 		return convert.p;
 	}
 #if MSVC
-	else if ( ( sizeof( FUNCPTR_TYPE ) == sizeof( void * ) + sizeof( int ) ) )
+	else if ( ( IsPlatformWindowsPC32() && ( sizeof( FUNCPTR_TYPE ) == sizeof( void * ) + sizeof( int ) ) ) ||
+	          ( IsPlatformWindowsPC64() && ( sizeof( FUNCPTR_TYPE ) == sizeof( void * ) + sizeof( int ) * 2 ) ) )
 	{
+		// multiple and virtual inheritance
 		struct MicrosoftUnknownMFP
 		{
 			void *p;
@@ -110,8 +209,10 @@ inline void *ScriptConvertFuncPtrToVoid( FUNCPTR_TYPE pFunc )
 		}
 		AssertMsg( 0, "Function pointer must be from primary vtable" );
 	}
-	else if ( ( sizeof( FUNCPTR_TYPE ) == sizeof( void * ) + ( sizeof( int ) * 3 ) ) )
+	else if ( ( IsPlatformWindowsPC32() && ( sizeof( FUNCPTR_TYPE ) == sizeof( void * ) + ( sizeof( int ) * 3 ) ) ) || 
+	          ( IsPlatformWindowsPC64() && ( sizeof( FUNCPTR_TYPE ) == sizeof( void * ) + ( sizeof( int ) * 4 ) ) ) )
 	{
+		// unknown_inheritance case
 		struct MicrosoftUnknownMFP
 		{
 			void *p;
@@ -198,11 +299,16 @@ inline void *ScriptConvertFuncPtrToVoid( FUNCPTR_TYPE pFunc )
 	else
 		AssertMsg( 0, "Member function pointer not supported. Why on earth are you using virtual inheritance!?" );
 	return NULL;
+#endif
 }
 
 template <typename FUNCPTR_TYPE>
-inline FUNCPTR_TYPE ScriptConvertFuncPtrFromVoid( void *p )
+inline FUNCPTR_TYPE ScriptConvertFuncPtrFromVoid( ScriptFunctionBindingStorageType_t p )
 {
+#if defined(_PS3) || defined(POSIX)
+	return ScriptConvertFreeFuncPtrFromVoid<FUNCPTR_TYPE>( p );
+#else
+
 	if ( ( sizeof( FUNCPTR_TYPE ) == sizeof( void * ) ) )
 	{
 		union FuncPtrConvert
@@ -264,6 +370,7 @@ inline FUNCPTR_TYPE ScriptConvertFuncPtrFromVoid( void *p )
 #endif
 	Assert( 0 );
 	return NULL;
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -308,7 +415,7 @@ inline FUNCPTR_TYPE ScriptConvertFuncPtrFromVoid( void *p )
 	class CNonMemberScriptBinding##N \
 	{ \
 	public: \
- 		static bool Call( void *pFunction, void *pContext, ScriptVariant_t *pArguments, int nArguments, ScriptVariant_t *pReturn ) \
+ 		static bool Call( ScriptFunctionBindingStorageType_t pFunction, void *pContext, ScriptVariant_t *pArguments, int nArguments, ScriptVariant_t *pReturn ) \
  		{ \
 			Assert( nArguments == N ); \
 			Assert( pReturn ); \
@@ -318,7 +425,7 @@ inline FUNCPTR_TYPE ScriptConvertFuncPtrFromVoid( void *p )
 			{ \
 				return false; \
 			} \
-			*pReturn = ((FUNC_TYPE)pFunction)( SCRIPT_BINDING_ARGS_##N ); \
+			*pReturn = (ScriptConvertFreeFuncPtrFromVoid<FUNC_TYPE>(pFunction))( SCRIPT_BINDING_ARGS_##N ); \
 			if ( pReturn->m_type == FIELD_VECTOR ) \
 				pReturn->m_pVector = new Vector(*pReturn->m_pVector); \
  			return true; \
@@ -329,7 +436,7 @@ inline FUNCPTR_TYPE ScriptConvertFuncPtrFromVoid( void *p )
 	class CNonMemberScriptBinding##N<FUNC_TYPE, void FUNC_BASE_TEMPLATE_FUNC_PARAMS_PASSTHRU_##N> \
 	{ \
 	public: \
-		static bool Call( void *pFunction, void *pContext, ScriptVariant_t *pArguments, int nArguments, ScriptVariant_t *pReturn ) \
+		static bool Call( ScriptFunctionBindingStorageType_t pFunction, void *pContext, ScriptVariant_t *pArguments, int nArguments, ScriptVariant_t *pReturn ) \
 		{ \
 			Assert( nArguments == N ); \
 			Assert( !pReturn ); \
@@ -339,7 +446,7 @@ inline FUNCPTR_TYPE ScriptConvertFuncPtrFromVoid( void *p )
 			{ \
 				return false; \
 			} \
-			((FUNC_TYPE)pFunction)( SCRIPT_BINDING_ARGS_##N ); \
+			(ScriptConvertFreeFuncPtrFromVoid<FUNC_TYPE>(pFunction))( SCRIPT_BINDING_ARGS_##N ); \
 			return true; \
 		} \
 	}; \
@@ -348,7 +455,7 @@ inline FUNCPTR_TYPE ScriptConvertFuncPtrFromVoid( void *p )
 	class CMemberScriptBinding##N \
 	{ \
 	public: \
- 		static bool Call( void *pFunction, void *pContext, ScriptVariant_t *pArguments, int nArguments, ScriptVariant_t *pReturn ) \
+ 		static bool Call( ScriptFunctionBindingStorageType_t pFunction, void *pContext, ScriptVariant_t *pArguments, int nArguments, ScriptVariant_t *pReturn ) \
  		{ \
 			Assert( nArguments == N ); \
 			Assert( pReturn ); \
@@ -369,7 +476,7 @@ inline FUNCPTR_TYPE ScriptConvertFuncPtrFromVoid( void *p )
 	class CMemberScriptBinding##N<OBJECT_TYPE_PTR, FUNC_TYPE, void FUNC_BASE_TEMPLATE_FUNC_PARAMS_PASSTHRU_##N> \
 	{ \
 	public: \
-		static bool Call( void *pFunction, void *pContext, ScriptVariant_t *pArguments, int nArguments, ScriptVariant_t *pReturn ) \
+		static bool Call( ScriptFunctionBindingStorageType_t pFunction, void *pContext, ScriptVariant_t *pArguments, int nArguments, ScriptVariant_t *pReturn ) \
 		{ \
 			Assert( nArguments == N ); \
 			Assert( !pReturn ); \
