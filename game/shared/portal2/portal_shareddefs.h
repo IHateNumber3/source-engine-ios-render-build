@@ -154,4 +154,6 @@ extern char *g_ppszPortalPassThroughMaterials[];
 
 #ifndef PORTAL_HALF_HEIGHT
 #define PORTAL_HALF_HEIGHT 54.0f
+#endif
+
 #endif // PORTAL_SHAREDDEFS_H
