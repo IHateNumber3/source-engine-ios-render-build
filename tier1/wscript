@@ -56,7 +56,8 @@ def build(bld):
 		'utlbuffer.cpp',
 		'utlbufferutil.cpp',
 		'utlstring.cpp',
-		'utlsymbol.cpp'
+		'utlsymbol.cpp',
+        'tier1_logging.cpp'
 	]
 
 	if bld.env.DEST_OS == 'win32':
