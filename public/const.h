@@ -27,6 +27,8 @@
 #define INVALID_STEAM_LOGON_TICKET_CANCELED "Steam ticket canceled\n"
 #define INVALID_STEAM_LOGON_NOT_CONNECTED "Steam not connected\n"
 
+#define CLIENTNAME_TIMED_OUT "%s timed out\n"
+
 
 #define DEFAULT_TICK_INTERVAL_X360	(1.0 / 29.970030) // This matches x360 refresh, but is not critical
 #define DEFAULT_TICK_INTERVAL_PS3	(1.0 / 30.0)
