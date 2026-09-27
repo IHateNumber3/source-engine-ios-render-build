@@ -373,6 +373,7 @@ enum RenderFx_t
 	kRenderFxFlickerSlow,
 	kRenderFxFlickerFast,
 	kRenderFxNoDissipate,
+    kRenderFxNoDissipation = kRenderFxNoDissipate,
 	kRenderFxDistort,          // <-- Добавить
 	kRenderFxHologram,         // <-- Добавить
 	kRenderFxExplode,
