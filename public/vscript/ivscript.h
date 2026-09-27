@@ -1,4 +1,4 @@
-//========== Copyright © 2008, Valve Corporation, All rights reserved. ========
+//========== Copyright ï¿½ 2008, Valve Corporation, All rights reserved. ========
 //
 // Purpose: VScript
 //
@@ -97,7 +97,7 @@
 
 #include "platform.h"
 #include "datamap.h"
-#include "appframework/IAppSystem.h"
+#include "appframework/iappsystem.h"
 #include "tier1/functors.h"
 #include "tier0/memdbgon.h"
 
@@ -190,6 +190,7 @@ template <typename T>
 inline const char * ScriptFieldTypeName() 
 {
 	T::using_unknown_script_type(); 
+	return NULL;
 }
 
 #define DECLARE_NAMED_FIELDTYPE( fieldType, strName ) template <> inline const char * ScriptFieldTypeName<fieldType>() { return strName; }
@@ -259,13 +260,19 @@ enum ScriptFuncBindingFlags_t
 	SF_MEMBER_FUNC	= 0x01,
 };
 
-typedef bool (*ScriptBindingFunc_t)( void *pFunction, void *pContext, ScriptVariant_t *pArguments, int nArguments, ScriptVariant_t *pReturn );
+#ifdef _PS3
+typedef void* ScriptFunctionBindingStorageType_t; // Function descriptor is actually 64-bit
+#else
+typedef void* ScriptFunctionBindingStorageType_t;
+#endif
+
+typedef bool (*ScriptBindingFunc_t)( ScriptFunctionBindingStorageType_t pFunction, void *pContext, ScriptVariant_t *pArguments, int nArguments, ScriptVariant_t *pReturn );
 
 struct ScriptFunctionBinding_t
 {
 	ScriptFuncDescriptor_t	m_desc;
 	ScriptBindingFunc_t		m_pfnBinding;
-	void *					m_pFunction;
+	ScriptFunctionBindingStorageType_t	m_pFunction;
 	unsigned				m_flags;
 };
 
@@ -282,7 +289,13 @@ public:
 
 struct ScriptClassDesc_t
 {
-	ScriptClassDesc_t() : m_pszScriptName( 0 ), m_pszClassname( 0 ), m_pszDescription( 0 ), m_pBaseDesc( 0 ), m_pfnConstruct( 0 ), m_pfnDestruct( 0 ), pHelper(NULL) {}
+	ScriptClassDesc_t( void (*pfnInitializer)() ) : m_pszScriptName( 0 ), m_pszClassname( 0 ), m_pszDescription( 0 ), m_pBaseDesc( 0 ), m_pfnConstruct( 0 ), m_pfnDestruct( 0 ), pHelper(NULL) 
+	{
+		(*pfnInitializer)();
+		ScriptClassDesc_t **ppHead = GetDescList();
+		m_pNextDesc = *ppHead;
+		*ppHead = this;
+	}
 
 	const char *						m_pszScriptName;
 	const char *						m_pszClassname;
@@ -293,6 +306,14 @@ struct ScriptClassDesc_t
 	void *(*m_pfnConstruct)();
 	void (*m_pfnDestruct)( void *);
 	IScriptInstanceHelper *				pHelper; // optional helper
+
+	ScriptClassDesc_t *					m_pNextDesc;
+
+	static ScriptClassDesc_t **GetDescList()
+	{
+		static ScriptClassDesc_t *pHead;
+		return &pHead;
+	}
 };
 
 //---------------------------------------------------------
@@ -323,6 +344,7 @@ struct ScriptVariant_t
 	bool IsNull() const						{ return (m_type == FIELD_VOID ); }
 
 	operator int() const					{ Assert( m_type == FIELD_INTEGER );	return m_int; }
+	operator int64() const					{ Assert( m_type == FIELD_INTEGER );	return static_cast<int64>(m_int); }
 	operator float() const					{ Assert( m_type == FIELD_FLOAT );		return m_float; }
 	operator const char *() const			{ Assert( m_type == FIELD_CSTRING );	return ( m_pszString ) ? m_pszString : ""; }
 	operator const Vector &() const			{ Assert( m_type == FIELD_VECTOR );		static Vector vecNull(0, 0, 0); return (m_pVector) ? *m_pVector : vecNull; }
@@ -331,6 +353,7 @@ struct ScriptVariant_t
 	operator HSCRIPT() const				{ Assert( m_type == FIELD_HSCRIPT );	return m_hScript; }
 
 	void operator=( int i ) 				{ m_type = FIELD_INTEGER; m_int = i; }
+	void operator=( int64 i ) 				{ m_type = FIELD_INTEGER; m_int = i; }
 	void operator=( float f ) 				{ m_type = FIELD_FLOAT; m_float = f; }
 	void operator=( double f ) 				{ m_type = FIELD_FLOAT; m_float = (float)f; }
 	void operator=( const Vector &vec )		{ m_type = FIELD_VECTOR; m_pVector = &vec; }
@@ -408,7 +431,7 @@ struct ScriptVariant_t
 		{
 		case FIELD_VOID:		*pDest = 0; return false;
 		case FIELD_INTEGER:		*pDest = m_int; return true;
-		case FIELD_FLOAT:		*pDest = m_float; return true;
+		case FIELD_FLOAT:		*pDest = ( int )m_float; return true;
 		case FIELD_BOOLEAN:		*pDest = m_bool; return true;
 		default:
 			DevWarning( "No conversion from %s to int now\n", ScriptFieldTypeName( m_type ) );
@@ -490,7 +513,7 @@ private:
 
 // Lower level macro primitives
 #define ScriptInitFunctionBinding( pScriptFunction, func )									ScriptInitFunctionBindingNamed( pScriptFunction, func, #func )
-#define ScriptInitFunctionBindingNamed( pScriptFunction, func, scriptName )					do { ScriptInitFuncDescriptorNamed( (&(pScriptFunction)->m_desc), func, scriptName ); (pScriptFunction)->m_pfnBinding = ScriptCreateBinding( &func ); (pScriptFunction)->m_pFunction = (void *)&func; } while (0)
+#define ScriptInitFunctionBindingNamed( pScriptFunction, func, scriptName )					do { ScriptInitFuncDescriptorNamed( (&(pScriptFunction)->m_desc), func, scriptName ); (pScriptFunction)->m_pfnBinding = ScriptCreateBinding( &func ); (pScriptFunction)->m_pFunction = ScriptConvertFreeFuncPtrToVoid( &func ); } while (0)
 
 #define ScriptInitMemberFunctionBinding( pScriptFunction, class, func )						ScriptInitMemberFunctionBinding_( pScriptFunction, class, func, #func )
 #define ScriptInitMemberFunctionBindingNamed( pScriptFunction, class, func, scriptName )	ScriptInitMemberFunctionBinding_( pScriptFunction, class, func, scriptName )
@@ -521,7 +544,7 @@ private:
 #define BEGIN_SCRIPTDESC( className, baseClass, description )								BEGIN_SCRIPTDESC_NAMED( className, baseClass, #className, description )
 #define BEGIN_SCRIPTDESC_ROOT( className, description )										BEGIN_SCRIPTDESC_ROOT_NAMED( className, #className, description )
 
-#ifdef MSVC
+#if defined(_MSC_VER) && (_MSC_VER < 1800)
 	#define DEFINE_SCRIPTDESC_FUNCTION( className, baseClass ) \
 		ScriptClassDesc_t * GetScriptDesc( className * )
 #else
@@ -530,14 +553,42 @@ private:
 		template <> ScriptClassDesc_t * GetScriptDesc<className>( className *)
 #endif
 
+struct ScriptNoBase_t;
+
+// We use template specialization to allow classes to optionally override this function.
+// For a given class, if this function is NOT overridden, the class' descriptor will use the base class'
+// IScriptInstanceHelper object.
+// If this function IS overridden, it will use the return value of the overridden function
+template < typename TScriptClass > 
+IScriptInstanceHelper *GetScriptInstanceHelperOverride( IScriptInstanceHelper *pBaseClassHelper )
+{
+	return pBaseClassHelper;
+}
+
+inline IScriptInstanceHelper *GetScriptInstanceHelper_ScriptNoBase_t()
+{
+	return NULL;
+}
+
 #define BEGIN_SCRIPTDESC_NAMED( className, baseClass, scriptName, description ) \
-	ScriptClassDesc_t g_##className##_ScriptDesc; \
+	IScriptInstanceHelper *GetScriptInstanceHelper_##baseClass(); \
+	IScriptInstanceHelper *GetScriptInstanceHelper_##className() \
+	{ \
+		return GetScriptInstanceHelperOverride< className >( GetScriptInstanceHelper_##baseClass() ); \
+	}; \
+	extern void Init##className##ScriptDesc(); \
+	ScriptClassDesc_t g_##className##_ScriptDesc( &Init##className##ScriptDesc ); \
 	DEFINE_SCRIPTDESC_FUNCTION( className, baseClass ) \
+	{ \
+		return &g_##className##_ScriptDesc; \
+	} \
+	\
+	void Init##className##ScriptDesc() \
 	{ \
 		static bool bInitialized; \
 		if ( bInitialized ) \
 		{ \
-			return &g_##className##_ScriptDesc; \
+			return; \
 		} \
 		\
 		bInitialized = true; \
@@ -546,34 +597,28 @@ private:
 		ScriptClassDesc_t *pDesc = &g_##className##_ScriptDesc; \
 		pDesc->m_pszDescription = description; \
 		ScriptInitClassDescNamed( pDesc, className, GetScriptDescForClass( baseClass ), scriptName ); \
-		ScriptClassDesc_t *pInstanceHelperBase = pDesc->m_pBaseDesc; \
-		while ( pInstanceHelperBase ) \
-		{ \
-			if ( pInstanceHelperBase->pHelper ) \
-			{ \
-				pDesc->pHelper = pInstanceHelperBase->pHelper; \
-				break; \
-			} \
-			pInstanceHelperBase = pInstanceHelperBase->m_pBaseDesc; \
-		}
+		pDesc->pHelper = GetScriptInstanceHelper_##className();
 
 
 #define BEGIN_SCRIPTDESC_ROOT_NAMED( className, scriptName, description ) \
 	BEGIN_SCRIPTDESC_NAMED( className, ScriptNoBase_t, scriptName, description )
 
 #define END_SCRIPTDESC() \
-		return pDesc; \
+		return; \
 	}
 
 #define DEFINE_SCRIPTFUNC( func, description )												DEFINE_SCRIPTFUNC_NAMED( func, #func, description )
 #define DEFINE_SCRIPTFUNC_NAMED( func, scriptName, description )							ScriptAddFunctionToClassDescNamed( pDesc, _className, func, scriptName, description );
 #define DEFINE_SCRIPT_CONSTRUCTOR()															ScriptAddConstructorToClassDesc( pDesc, _className );
-#define DEFINE_SCRIPT_INSTANCE_HELPER( p )													pDesc->pHelper = (p);
-
+#define DEFINE_SCRIPT_INSTANCE_HELPER( className, p )										template <> IScriptInstanceHelper *GetScriptInstanceHelperOverride< className >( IScriptInstanceHelper * ) { return p; }
+								
 template <typename T> ScriptClassDesc_t *GetScriptDesc(T *);
 
-struct ScriptNoBase_t;
-template <> inline ScriptClassDesc_t *GetScriptDesc<ScriptNoBase_t>( ScriptNoBase_t *) { return NULL; }
+template <>
+#ifdef _PS3
+static
+#endif
+inline ScriptClassDesc_t *GetScriptDesc<ScriptNoBase_t>( ScriptNoBase_t *) { return NULL; }
 
 #define GetScriptDescForClass( className ) GetScriptDesc( ( className *)NULL )
 
@@ -682,6 +727,16 @@ public:
 	// External classes
 	//--------------------------------------------------------
 	virtual bool RegisterClass( ScriptClassDesc_t *pClassDesc ) = 0;
+
+	void RegisterAllClasses()
+	{
+		ScriptClassDesc_t *pCurrent = *ScriptClassDesc_t::GetDescList();
+		while ( pCurrent )
+		{
+			RegisterClass( pCurrent );
+			pCurrent = pCurrent->m_pNextDesc;
+		}
+	}
 
 	//--------------------------------------------------------
 	// External instances. Note class will be auto-registered.
