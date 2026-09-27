@@ -148,5 +148,10 @@ extern char *g_ppszPortalPassThroughMaterials[];
 
 #define USE_SLOWTIME 0
 
+#ifndef PORTAL_HALF_WIDTH
+#define PORTAL_HALF_WIDTH 32.0f
+#endif
 
+#ifndef PORTAL_HALF_HEIGHT
+#define PORTAL_HALF_HEIGHT 54.0f
 #endif // PORTAL_SHAREDDEFS_H
