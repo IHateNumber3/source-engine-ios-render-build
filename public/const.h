@@ -357,32 +357,35 @@ enum RenderMode_t
 };
 
 enum RenderFx_t
-{	
-	kRenderFxNone = 0, 
-	kRenderFxPulseSlow, 
-	kRenderFxPulseFast, 
-	kRenderFxPulseSlowWide, 
-	kRenderFxPulseFastWide, 
-
-	kRenderFxFadeSlow, 
-	kRenderFxFadeFast, 
-	kRenderFxSolidSlow, 
-	kRenderFxSolidFast, 	   
-	kRenderFxStrobeSlow, 
-
-	kRenderFxStrobeFast, 
-	kRenderFxStrobeFaster, 
-	kRenderFxFlickerSlow, 
+{
+	kRenderFxNone = 0,
+	kRenderFxPulseSlow,
+	kRenderFxPulseFast,
+	kRenderFxPulseSlowWide,
+	kRenderFxPulseFastWide,
+	kRenderFxFadeSlow,
+	kRenderFxFadeFast,
+	kRenderFxSolidSlow,
+	kRenderFxSolidFast,
+	kRenderFxStrobeSlow,
+	kRenderFxStrobeFast,
+	kRenderFxStrobeFaster,
+	kRenderFxFlickerSlow,
 	kRenderFxFlickerFast,
-	kRenderFxNoDissipation,
-
-	kRenderFxFadeOut,
-	kRenderFxFadeIn,
+	kRenderFxNoDissipate,
+	kRenderFxDistort,          // <-- Добавить
+	kRenderFxHologram,         // <-- Добавить
+	kRenderFxExplode,
+	kRenderFxGlowShell,
+	kRenderFxClampMinScale,    // <-- Добавить
+	kRenderFxEnvRain,
+	kRenderFxEnvSnow,
+	kRenderFxSpotlight,
+	kRenderFxRagdoll,          // <-- Добавить
 	kRenderFxPulseFastWider,
-	kRenderFxGlowShell,			// Glowing Shell
-
 	kRenderFxMax
 };
+
 
 enum Collision_Group_t
 {
