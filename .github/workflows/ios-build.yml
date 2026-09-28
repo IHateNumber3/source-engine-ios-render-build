@@ -10,15 +10,11 @@ on:
       game:
         description: "Which game's client/server to build (content itself is not included; you must supply your own game files)"
         required: true
-        default: hl2
+        default: portal2
         type: choice
         options:
-          - hl2
           - portal
           - portal2
-          - hl2mp
-          - episodic
-          - cstrike
       bundle_id:
         description: "iOS bundle identifier for the packaged app"
         required: true
