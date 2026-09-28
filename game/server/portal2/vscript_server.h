@@ -1,4 +1,4 @@
-//========== Copyright © 2008, Valve Corporation, All rights reserved. ========
+//========== Copyright Â© 2008, Valve Corporation, All rights reserved. ========
 //
 // Purpose:
 //
@@ -9,7 +9,7 @@
 
 #include "vscript/ivscript.h"
 #include "tier1/KeyValues.h"
-#include "vscript_shared.h"
+#include "portal2/vscript_shared.h"
 
 #if defined( _WIN32 )
 #pragma once
