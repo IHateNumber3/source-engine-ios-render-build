@@ -180,7 +180,6 @@ $Project "Client (Portal2)"
 			$File	"$SRCDIR\game\shared\portal2\portal_weapon_parse.cpp"
             $File   "$SRCDIR\game\shared\portal2\vscript_shared.cpp"
             $File   "$SRCDIR\game\shared\portal2\vscript_shared.h"
-            $File   "portal2\ammodef.cpp"
 
 			$Folder	"Weapons"
 			{
