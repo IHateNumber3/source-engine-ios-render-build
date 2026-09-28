@@ -19,6 +19,9 @@
 #include "debugoverlay_shared.h"
 #include "coordsize.h"
 #include "vphysics/performance.h"
+#ifdef PORTAL2
+#include "portal2/vscript_shared.h"
+#endif
 
 #ifdef CLIENT_DLL
 	#include "c_te_effect_dispatch.h"
