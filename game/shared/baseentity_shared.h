@@ -307,4 +307,6 @@ inline bool IsEntityQAngleVelReasonable( const QAngle &q )
 
 extern bool CheckEmitReasonablePhysicsSpew();
 
+HSCRIPT GetScriptInstance();
+
 #endif // BASEENTITY_SHARED_H
