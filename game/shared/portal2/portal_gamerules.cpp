@@ -33,7 +33,7 @@
 	#include "portal/weapon_physcannon.h"
 	#include "props.h"		// For props flags used in making the portal weight box
 	#include "datacache/imdlcache.h"	// For precaching box model
-	#include "vscript_server.h"
+	#include "portal2/vscript_server.h"
 #endif
 
 #include "convar.h"
