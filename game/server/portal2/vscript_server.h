@@ -8,8 +8,8 @@
 #define VSCRIPT_SERVER_H
 
 #include "vscript/ivscript.h"
+#include "../../shared/portal2/vscript_shared.h"
 #include "tier1/KeyValues.h"
-#include "portal2/vscript_shared.h"
 
 #if defined( _WIN32 )
 #pragma once
