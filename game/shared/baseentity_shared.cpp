@@ -2579,7 +2579,8 @@ HSCRIPT CBaseEntity::GetScriptInstance()
 			g_pScriptVM->GenerateUniqueKey( ( m_iName != NULL_STRING ) ? STRING(GetEntityName()) : GetClassname(), szName, sizeof(szName) );
 			m_iszScriptId = AllocPooledString( szName );
 		}
-		m_hScriptInstance = g_pScriptVM->RegisterInstance( GetScriptDesc(), this );
+		// Передаем 'this' в GetScriptDesc, как требует шаблон ivscript.h
+		m_hScriptInstance = g_pScriptVM->RegisterInstance( GetScriptDesc(this), this );
 		g_pScriptVM->SetInstanceUniqeId( m_hScriptInstance, STRING(m_iszScriptId) );
 	}
 	return m_hScriptInstance;
@@ -2587,5 +2588,6 @@ HSCRIPT CBaseEntity::GetScriptInstance()
 	return NULL;
 #endif
 }
+
 
 
