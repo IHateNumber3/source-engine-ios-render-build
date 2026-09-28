@@ -277,6 +277,8 @@ public:
 	void					DontRecordInTools();
 	bool					ShouldRecordInTools() const;
 
+    HSCRIPT                 GetScriptInstance();
+
 	virtual void					Release();
 	virtual ICollideable*			GetCollideable()		{ return &m_Collision; }
 	virtual IClientNetworkable*		GetClientNetworkable()	{ return this; }
