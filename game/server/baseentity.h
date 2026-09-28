@@ -360,9 +360,14 @@ public:
 	static bool				m_bInDebugSelect;
 	static int				m_nDebugPlayer;
 
+public:
+    // VScript
+    HSCRIPT GetScriptInstance();
+
 protected:
-    HSCRIPT   m_hScriptInstance;
-    string_t  m_iszScriptId;
+    HSCRIPT m_hScriptInstance;
+    string_t m_iszScriptId;
+
 
 protected:
 
