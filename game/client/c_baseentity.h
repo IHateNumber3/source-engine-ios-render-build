@@ -182,6 +182,9 @@ class C_BaseEntity : public IClientEntity
 	friend void cc_cl_interp_all_changed( IConVar *pConVar, const char *pOldString, float flOldValue );
 
 public:
+    virtual HSCRIPT GetScriptInstance();
+
+public:
 	DECLARE_DATADESC();
 	DECLARE_CLIENTCLASS();
 	DECLARE_PREDICTABLE();
