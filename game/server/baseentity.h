@@ -20,6 +20,8 @@
 #include "ServerNetworkProperty.h"
 #include "shareddefs.h"
 #include "engine/ivmodelinfo.h"
+#include "vscript/ivscript.h"
+
 
 class CDamageModifier;
 class CDmgAccumulator;
@@ -357,6 +359,8 @@ public:
 
 	static bool				m_bInDebugSelect;
 	static int				m_nDebugPlayer;
+
+    HSCRIPT                 GetScriptInstance();
 
 protected:
 
