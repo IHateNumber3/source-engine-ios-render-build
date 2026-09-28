@@ -1,4 +1,4 @@
-//========= Copyright � 1996-2005, Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: The Half-Life 2 game rules, such as the relationship tables and ammo
 //			damage cvars.
@@ -34,6 +34,7 @@
 	#include "props.h"		// For props flags used in making the portal weight box
 	#include "datacache/imdlcache.h"	// For precaching box model
 	#include "portal2/vscript_server.h"
+	#include "util.h"
 #endif
 
 #include "convar.h"
@@ -82,12 +83,10 @@ END_NETWORK_TABLE()
 
 
 IMPLEMENT_NETWORKCLASS_ALIASED( PortalGameRulesProxy, DT_PortalGameRulesProxy )
-// Рядок 67:
+
 #ifndef CLIENT_DLL
 LINK_ENTITY_TO_CLASS_ALIASED( portal_gamerules, PortalGameRulesProxy );
 #endif
-
-
 
 #ifdef CLIENT_DLL
 	void RecvProxy_PortalGameRules( const RecvProp *pProp, void **pOut, void *pData, int objectID )
@@ -172,8 +171,6 @@ bool CPortalGameRules::ClientCommand( CBaseEntity *pEdict, const CCommand &args 
 		if ( args.ArgC() < 2 )
 			return true;
 
-		//int nDay = atoi( args[1] );
-		// Msg("Selecting day %d\n", nDay );
 		return true;
 	}
 
@@ -202,7 +199,7 @@ bool CPortalGameRules::AllowDamage( CBaseEntity *pVictim, const CTakeDamageInfo 
 
 bool CPortalGameRules::IsSavingAllowed( void )
 {
-	if ( UTIL_GetLocalPlayerOrListenServerHost()->GetBonusChallenge() > 0 )
+	if ( UTIL_GetLocalPlayerOrListenServerHost() && UTIL_GetLocalPlayerOrListenServerHost()->GetBonusChallenge() > 0 )
 	{
 		return false;
 	}
@@ -262,27 +259,14 @@ bool CPortalGameRules::ShouldCollide( int collisionGroup0, int collisionGroup1 )
 }
 
 
-
-
-
-
-
-
-
-
-
 // ------------------------------------------------------------------------------------ //
 // Global functions.
 // ------------------------------------------------------------------------------------ //
 
-// shared ammo definition
-// JAY: Trying to make a more physical bullet response
 #define BULLET_MASS_GRAINS_TO_LB(grains)	(0.002285*(grains)/16.0f)
 #define BULLET_MASS_GRAINS_TO_KG(grains)	lbs2kg(BULLET_MASS_GRAINS_TO_LB(grains))
 
-// exaggerate all of the forces, but use real numbers to keep them consistent
 #define BULLET_IMPULSE_EXAGGERATION			3.5
-// convert a velocity in ft/sec and a mass in grains to an impulse in kg in/s
 #define BULLET_IMPULSE(grains, ftpersec)	((ftpersec)*12*BULLET_MASS_GRAINS_TO_KG(grains)*BULLET_IMPULSE_EXAGGERATION)
 
 
@@ -312,11 +296,11 @@ CAmmoDef *GetAmmoDef()
 		def.AddAmmoType("Gravity",			DMG_CLUB,					TRACER_NONE,			0,	0, 8, 0, 0 );
 		def.AddAmmoType("Battery",			DMG_CLUB,					TRACER_NONE,			(const char*)NULL, (const char*)NULL, (const char*)NULL, 0, 0 );
 #ifndef PORTAL2
-		def.AddAmmoType("GaussEnergy",		DMG_SHOCK,					TRACER_NONE,			"sk_jeep_gauss_damage",		"sk_jeep_gauss_damage", "sk_max_gauss_round", BULLET_IMPULSE(650, 8000), 0 ); // hit like a 10kg weight at 400 in/s
+		def.AddAmmoType("GaussEnergy",		DMG_SHOCK,					TRACER_NONE,			"sk_jeep_gauss_damage",		"sk_jeep_gauss_damage", "sk_max_gauss_round", BULLET_IMPULSE(650, 8000), 0 );
 #endif
-		def.AddAmmoType("CombineCannon",	DMG_BULLET,					TRACER_LINE,			"sk_npc_dmg_gunship_to_plr", "sk_npc_dmg_gunship", (const char*)NULL, 1.5 * 750 * 12, 0 ); // hit like a 1.5kg weight at 750 ft/s
+		def.AddAmmoType("CombineCannon",	DMG_BULLET,					TRACER_LINE,			"sk_npc_dmg_gunship_to_plr", "sk_npc_dmg_gunship", (const char*)NULL, 1.5 * 750 * 12, 0 );
 		def.AddAmmoType("AirboatGun",		DMG_AIRBOAT,				TRACER_LINE,			"sk_plr_dmg_airboat",		"sk_npc_dmg_airboat",		(const char*)NULL,					BULLET_IMPULSE(10, 600), 0 );
-		def.AddAmmoType("StriderMinigun",	DMG_BULLET,					TRACER_LINE,			5, 5, 15, 1.0 * 750 * 12, AMMO_FORCE_DROP_IF_CARRIED ); // hit like a 1.0kg weight at 750 ft/s
+		def.AddAmmoType("StriderMinigun",	DMG_BULLET,					TRACER_LINE,			5, 5, 15, 1.0 * 750 * 12, AMMO_FORCE_DROP_IF_CARRIED );
 #ifndef PORTAL2
 		def.AddAmmoType("HelicopterGun",	DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_npc_dmg_helicopter_to_plr", "sk_npc_dmg_helicopter",	"sk_max_smg1",	BULLET_IMPULSE(400, 1225), AMMO_FORCE_DROP_IF_CARRIED | AMMO_INTERPRET_PLRDAMAGE_AS_DAMAGE_TO_PLAYER );
 #endif
@@ -335,7 +319,7 @@ CAmmoDef *GetAmmoDef()
 #if !defined ( CLIENT_DLL )
 static bool ScriptIsMultiplayer( void )
 {
-	return false;//g_pGameRules->IsMultiplayer();
+	return false;
 }
 
 static bool TryDLC1InstalledOrCatch( void )
@@ -343,7 +327,12 @@ static bool TryDLC1InstalledOrCatch( void )
 	return true;
 }
 
-extern float GetPlayerSilenceDuration( int nPlayer );
+static float GetPlayerSilenceDuration( int nPlayer )
+{
+	return PlayerVoiceListener().GetPlayerSilenceDuration( nPlayer );
+}
+
+extern void PrecacheMovie( const char *pMovieName );
 extern int GetOrangePlayerIndex( void );
 extern int GetBluePlayerIndex( void );
 extern int GetCoopSectionIndex( void );
