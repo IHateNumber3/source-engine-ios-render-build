@@ -150,6 +150,9 @@
 #define FL_STATICPROP			(1<<19)	// Eetsa static prop!		
 #ifdef PORTAL2
 #define FL_AFFECTED_BY_PAINT	(1<<20)
+#ifndef FL_GRAPHED
+#define FL_GRAPHED (1<<10)
+#endif
 #else
 #define FL_GRAPHED				(1<<20) // worldgraph has this ent listed as something that blocks a connection
 #endif
