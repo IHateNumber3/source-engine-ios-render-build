@@ -385,14 +385,16 @@ void ScriptShowHudMessageAll( const char *pMsg, float flHoldTime )
 
 void GivePlayerPortalgun( void )
 {
+	#ifndef CLIENT_DLL
 	for ( int i = 1 ; i <= gpGlobals->maxClients ; i++ )
 	{
 		CPortal_Player *pPlayer = ToPortalPlayer( UTIL_PlayerByIndex( i ) );
 		if ( pPlayer )
 		{
-			pPlayer->GivePortalGun( false, true );
+			pPlayer->GiveNamedItem( "weapon_portalgun" );
 		}
 	}
+    #endif
 }
 
 void UpgradePlayerPortalgun( void )
