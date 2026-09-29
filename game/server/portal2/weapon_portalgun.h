@@ -20,11 +20,19 @@ class CWeaponPortalgun : public CBasePortalCombatWeapon
 {
 	DECLARE_DATADESC();
 
+
 public:
 	DECLARE_CLASS( CWeaponPortalgun, CBasePortalCombatWeapon );
 
 	DECLARE_NETWORKCLASS(); 
 	DECLARE_PREDICTABLE();
+
+	void SetPotatosOnPortalgun( bool bShowPotatos );
+	void TogglePotatosThink( void );
+
+private:
+	bool m_bShowingPotatos;
+
 
 private:
 	CNetworkVar( bool,	m_bCanFirePortal1 );	// Is able to use primary fire
