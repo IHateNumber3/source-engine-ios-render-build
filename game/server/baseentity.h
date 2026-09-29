@@ -364,7 +364,7 @@ public:
     // VScript
     HSCRIPT GetScriptInstance();
 
-protected:
+public:
     HSCRIPT m_hScriptInstance;
     string_t m_iszScriptId;
 
