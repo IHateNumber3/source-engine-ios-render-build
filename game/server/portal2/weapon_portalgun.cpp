@@ -734,3 +734,43 @@ static void change_portalgun_linkage_id_f( const CCommand &args )
 }
 
 ConCommand change_portalgun_linkage_id( "change_portalgun_linkage_id", change_portalgun_linkage_id_f, "Changes the portal linkage ID for the portal gun held by the commanding player.", FCVAR_CHEAT );
+
+static const char *s_szTogglePotatosThinkContext = "TogglePotatosThinkContext";
+
+void CWeaponPortalgun::SetPotatosOnPortalgun( bool bShowPotatos )
+{
+	if ( bShowPotatos != m_bShowingPotatos )
+	{
+		m_bShowingPotatos = bShowPotatos;
+		Holster( NULL );
+		SetContextThink( &CWeaponPortalgun::TogglePotatosThink, gpGlobals->curtime + 2.0, s_szTogglePotatosThinkContext );
+	}
+}
+
+void CWeaponPortalgun::TogglePotatosThink( void )
+{
+	SetContextThink( NULL, TICK_NEVER_THINK, s_szTogglePotatosThinkContext );
+
+	CBasePlayer *pPlayer = ToPortalPlayer( GetOwner() );
+	if ( pPlayer )
+	{	
+		CBaseViewModel *vm = pPlayer->GetViewModel();
+		if ( vm )
+		{
+			int iVmPotatoGroup = vm->FindBodygroupByName( "potatos_vmodel" );
+			if ( iVmPotatoGroup != -1 )
+			{
+				vm->SetBodygroup( iVmPotatoGroup, m_bShowingPotatos ? 1 : 0 );
+			}
+
+			int iWmPotatoGroup = FindBodygroupByName( "potatos_vmodel" );
+			if ( iWmPotatoGroup != -1 )
+			{
+				SetBodygroup( iWmPotatoGroup, m_bShowingPotatos ? 1 : 0 );
+			}
+			
+			Deploy();
+		}
+	}
+}
+
