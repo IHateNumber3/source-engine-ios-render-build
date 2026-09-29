@@ -45,4 +45,6 @@ char const *GetSceneFilename( CBaseEntity *ent );
 void ReloadSceneFromDisk( CBaseEntity *ent );
 
 
+HSCRIPT ScriptCreateSceneEntity( const char *pszSceneName );
+
 #endif // SCENEENTITY_H
