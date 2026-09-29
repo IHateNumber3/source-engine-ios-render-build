@@ -20,6 +20,26 @@
 //#include "vscript_server_nut.h"
 #endif
 
+// --- Хелперы конвертации VScript <-> CBaseEntity ---
+inline CBaseEntity *ToEnt( HSCRIPT hScript )
+{
+	if ( !hScript || !g_pScriptVM )
+		return NULL;
+	return (CBaseEntity *)g_pScriptVM->GetInstanceValue( hScript, NULL );
+}
+
+inline HSCRIPT ToHScript( CBaseEntity *pEnt )
+{
+	if ( !pEnt )
+		return NULL;
+	return pEnt->GetScriptInstance();
+}
+
+// --- Объявление внешнего менеджера скриптов ---
+class IScriptManager;
+extern IScriptManager *scriptmanager;
+
+
 extern ScriptClassDesc_t * GetScriptDesc( CBaseEntity * );
 
 // #define VMPROFILE 1
