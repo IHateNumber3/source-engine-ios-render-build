@@ -86,7 +86,8 @@ END_NETWORK_TABLE()
 IMPLEMENT_NETWORKCLASS_ALIASED( PortalGameRulesProxy, DT_PortalGameRulesProxy )
 
 #ifndef CLIENT_DLL
-LINK_ENTITY_TO_CLASS_ALIASED(portal_gamerules, PortalGameRulesProxy );
+//LINK_ENTITY_TO_CLASS_ALIASED(portal_gamerules, PortalGameRulesProxy );
+print("[SERVER] nah bro i'm tired this shi doesn't work")
 #endif
 
 #ifdef CLIENT_DLL
