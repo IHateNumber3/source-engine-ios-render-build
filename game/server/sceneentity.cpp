@@ -5654,3 +5654,16 @@ CON_COMMAND( scene_flush, "Flush all .vcds from the cache and reload from disk."
 	scenefilecache->Reload();
 	Msg( "   done\n" );
 }
+
+HSCRIPT ScriptCreateSceneEntity( const char *pszSceneName )
+{
+	CSceneEntity *pScene = (CSceneEntity *)CreateEntityByName( "logic_choreographed_scene" );
+	if ( pScene )
+	{
+		pScene->m_iszSceneFile = AllocPooledString( pszSceneName );
+		pScene->Spawn();
+		pScene->Activate();
+		return ToHScript( pScene );
+	}
+	return NULL;
+}
