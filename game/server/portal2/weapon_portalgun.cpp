@@ -19,6 +19,7 @@
 #include "prop_portal_shared.h"
 #include "portal_placement.h"
 #include "weapon_portalgun_shared.h"
+#include "weapon_portalgun.h"
 #include "physicsshadowclone.h"
 #include "particle_parse.h"
 
