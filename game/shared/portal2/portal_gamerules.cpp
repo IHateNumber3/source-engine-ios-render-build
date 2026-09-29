@@ -15,7 +15,7 @@
 
 #ifndef CLIENT_DLL
 #include "portal2/player_voice_listener.h"
-#include "vscript/vscript.h"
+#include "vscript/ivscript.h"
 #endif // CLIENT_DLL
 
 #ifdef CLIENT_DLL
