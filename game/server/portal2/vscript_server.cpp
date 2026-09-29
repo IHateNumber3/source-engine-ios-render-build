@@ -15,7 +15,7 @@
 #include "characterset.h"
 #include "sceneentity.h"		// for exposing scene precache function
 #include "isaverestore.h"
-#include "gamerules.h"
+#include "portal_gamerules.h"
 #ifdef _WIN32
 //#include "vscript_server_nut.h"
 #endif
@@ -452,9 +452,9 @@ bool VScriptServerInit()
 				ScriptRegisterFunction( g_pScriptVM, CreateProp, "Create a physics prop" );
 
 				
-				if ( GameRules() )
+				if ( PortalGameRules() )
 				{
-					GameRules()->RegisterScriptFunctions();
+					PortalGameRules()->RegisterScriptFunctions();
 				}
 
 				g_pScriptVM->RegisterInstance( &g_ScriptEntityIterator, "Entities" );
