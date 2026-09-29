@@ -27,7 +27,7 @@ public:
 	DECLARE_NETWORKCLASS(); 
 	DECLARE_PREDICTABLE();
 
-	void SetPotatosOnPortalgun( bool bShowPotatos );
+	void SetPotatosOnPortalGun( bool bShowPotatos );
 	void TogglePotatosThink( void );
 
 private:
