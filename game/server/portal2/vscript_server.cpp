@@ -1,11 +1,12 @@
-//========== Copyright © 2008, Valve Corporation, All rights reserved. ========
+//========== Copyright Â© 2008, Valve Corporation, All rights reserved. ========
 //
 // Purpose:
 //
 //=============================================================================
 
 #include "cbase.h"
-#include "vscript_server.h"
+#include "portal2/vscript_server.h"
+#include "util.h"
 #include "icommandline.h"
 #include "tier1/utlbuffer.h"
 #include "tier1/fmtstr.h"
@@ -211,7 +212,7 @@ void CScriptKeyValues::ScriptReleaseKeyValues( )
 
 
 // constructors
-CScriptKeyValues::CScriptKeyValues( KeyValues *pKeyValues = NULL )
+CScriptKeyValues::CScriptKeyValues( KeyValues *pKeyValues )
 {
 	m_pKeyValues = pKeyValues;
 }
@@ -244,7 +245,7 @@ static float FrameTime()
 
 static void SendToConsole( const char *pszCommand )
 {
-	CBasePlayer *pPlayer = UTIL_GetLocalPlayerOrListenServerHost();
+	CBasePlayer *pPlayer = UTIL_GetListenServerHost();
 	if ( !pPlayer )
 	{
 		DevMsg ("Cannot execute \"%s\", no player\n", pszCommand );
