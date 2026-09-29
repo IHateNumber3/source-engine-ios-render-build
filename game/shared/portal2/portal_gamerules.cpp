@@ -87,7 +87,7 @@ IMPLEMENT_NETWORKCLASS_ALIASED( PortalGameRulesProxy, DT_PortalGameRulesProxy )
 
 #ifndef CLIENT_DLL
 //LINK_ENTITY_TO_CLASS_ALIASED(portal_gamerules, PortalGameRulesProxy );
-DevMsg("[SERVER] nah bro i'm tired this shi doesn't work")
+DevMsg("[SERVER] nah bro i'm tired this shi doesn't work\n");
 #endif
 
 #ifdef CLIENT_DLL
