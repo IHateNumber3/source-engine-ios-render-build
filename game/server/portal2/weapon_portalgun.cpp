@@ -737,7 +737,7 @@ ConCommand change_portalgun_linkage_id( "change_portalgun_linkage_id", change_po
 
 static const char *s_szTogglePotatosThinkContext = "TogglePotatosThinkContext";
 
-void CWeaponPortalgun::SetPotatosOnPortalgun( bool bShowPotatos )
+void CWeaponPortalgun::SetPotatosOnPortalGun( bool bShowPotatos )
 {
 	if ( bShowPotatos != m_bShowingPotatos )
 	{
