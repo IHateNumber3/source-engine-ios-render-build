@@ -15,6 +15,7 @@
 
 #ifndef CLIENT_DLL
 #include "portal2/player_voice_listener.h"
+#include "vscript/vscript.h"
 #endif // CLIENT_DLL
 
 #ifdef CLIENT_DLL
@@ -85,7 +86,7 @@ END_NETWORK_TABLE()
 IMPLEMENT_NETWORKCLASS_ALIASED( PortalGameRulesProxy, DT_PortalGameRulesProxy )
 
 #ifndef CLIENT_DLL
-LINK_ENTITY_TO_CLASS_ALIASED( portal_gamerules, PortalGameRulesProxy );
+LINK_ENTITY_TO_CLASS_ALIASED( portal_gamerules, CPortalGameRulesProxy );
 #endif
 
 #ifdef CLIENT_DLL
@@ -199,7 +200,8 @@ bool CPortalGameRules::AllowDamage( CBaseEntity *pVictim, const CTakeDamageInfo 
 
 bool CPortalGameRules::IsSavingAllowed( void )
 {
-	if ( UTIL_GetLocalPlayerOrListenServerHost() && UTIL_GetLocalPlayerOrListenServerHost()->GetBonusChallenge() > 0 )
+	CBasePlayer *pHost = UTIL_GetListenServerHost();
+	if ( pHost && pHost->GetBonusChallenge() > 0 )
 	{
 		return false;
 	}
@@ -387,7 +389,7 @@ void GivePlayerPortalgun( void )
 		CPortal_Player *pPlayer = ToPortalPlayer( UTIL_PlayerByIndex( i ) );
 		if ( pPlayer )
 		{
-			pPlayer->GivePlayerPortalGun( false, true );
+			pPlayer->GivePortalGun( false, true );
 		}
 	}
 }
@@ -425,7 +427,7 @@ void UpgradePlayerPotatogun( void )
 			{
 				pPortalGun->SetCanFirePortal1();
 				pPortalGun->SetCanFirePortal2();
-				pPortalGun->SetPotatosOnPortalgun( true );
+				pPortalGun->SetPotatosOnPortalGun( true );
 			}
 			else
 			{
@@ -438,7 +440,12 @@ void UpgradePlayerPotatogun( void )
 
 HSCRIPT GetPlayer( void )
 {
-	return ToHScript( UTIL_GetLocalPlayer() );	
+	CBasePlayer *pPlayer = UTIL_GetListenServerHost();
+	if ( pPlayer && g_pScriptVM )
+	{
+		return g_pScriptVM->RegisterInstance( pPlayer );
+	}
+	return NULL;	
 }
 
 void CPortalGameRules::RegisterScriptFunctions( void )
