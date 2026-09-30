@@ -7479,36 +7479,14 @@ void CC_Ent_Orient( const CCommand& args )
 
 static ConCommand ent_orient("ent_orient", CC_Ent_Orient, "Orient the specified entity to match the player's angles. By default, only orients target entity's YAW. Use the 'allangles' option to orient on all axis.\n\tFormat: ent_orient <entity name> <optional: allangles>", FCVAR_CHEAT);
 
-void CBaseEntity::RunPrecacheScripts()
-{
-	if ( m_ScriptScope.IsInitialized() )
-	{
-		ScriptVariant_t functionReturn;
-		m_ScriptScope.Call( "Precache", &functionReturn );
-	}
-}
-bool CBaseEntity::ValidateScriptScope()
-{
-	if ( !m_ScriptScope.IsInitialized() )
-	{
-		if ( !g_pScriptVM )
-			return false;
+// --- VScript Global VM & Description ---
+extern IScriptVM *g_pScriptVM;
 
-		char szScopeName[256];
-		if ( m_iName != NULL_STRING )
-		{
-			Q_snprintf( szScopeName, sizeof(szScopeName), "%s", STRING(m_iName) );
-		}
-		else
-		{
-			Q_snprintf( szScopeName, sizeof(szScopeName), "%s_%d", GetClassname(), entindex() );
-		}
+BEGIN_SCRIPTDESC_ROOT( CBaseEntity, "Base entity class" )
+	DEFINE_SCRIPTFUNC( GetClassname, "Get the entity classname" )
+END_SCRIPTDESC()
 
-		m_ScriptScope.Init( szScopeName, g_pScriptVM->GetRootTable() );
-		m_ScriptScope.SetValue( "self", g_pScriptVM->RegisterInstance( GetScriptDesc(), this ) );
-	}
-	return true;
-}
+// --- VScript Implementation ---
 
 bool CBaseEntity::ValidateScriptScope()
 {
@@ -7538,14 +7516,16 @@ HSCRIPT CBaseEntity::GetScriptInstance()
 	if ( !m_hScriptInstance && g_pScriptVM )
 	{
 		ValidateScriptScope();
-		m_hScriptInstance = m_ScriptScope.GetScriptHandle();
+		m_hScriptInstance = (HSCRIPT)m_ScriptScope;
 	}
 	return m_hScriptInstance;
 }
 
-BEGIN_SCRIPTDESC_ROOT( CBaseEntity, "Base entity class" )
-	DEFINE_SCRIPTFUNC( GetClassname, "Get the entity classname" )
-	DEFINE_SCRIPTFUNC( GetEntityIndex, "Get entity index" )
-	DEFINE_SCRIPTFUNC( GetPreScriptThink, "Get pre-think script function" )
-END_SCRIPTDESC()
-
+void CBaseEntity::RunPrecacheScripts()
+{
+	if ( m_ScriptScope.IsInitialized() )
+	{
+		ScriptVariant_t functionReturn;
+		m_ScriptScope.Call( "Precache", &functionReturn );
+	}
+}
