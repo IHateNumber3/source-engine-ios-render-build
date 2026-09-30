@@ -38,7 +38,7 @@ bool IsEntityCreationAllowedInScripts( void );
 class CScriptKeyValues
 {
 public:
-	CScriptKeyValues( KeyValues *pKeyValues );
+	CScriptKeyValues( KeyValues *pKeyValues = NULL );
 	~CScriptKeyValues( );
 
 	HSCRIPT ScriptFindKey( const char *pszName );
