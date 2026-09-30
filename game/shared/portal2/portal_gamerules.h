@@ -1,4 +1,4 @@
-//========= Copyright � 1996-2005, Valve Corporation, All rights reserved. ============//
+//========= Copyright  1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: Game rules for Portal.
 //
@@ -37,6 +37,9 @@ public:
 	CPortalGameRules();
 	virtual ~CPortalGameRules() {}
 
+	// --- VScript: Гарантированный публичный доступ ---
+	virtual void RegisterScriptFunctions( void );
+
 #ifdef CLIENT_DLL
 	virtual bool IsBonusChallengeTimeBased( void );
 	virtual bool IsChallengeMode();
@@ -55,7 +58,6 @@ public:
 
 	virtual const char *	GetGameDescription( void );
 	virtual bool			AllowDamage( CBaseEntity *pVictim, const CTakeDamageInfo &info );
-	virtual void			RegisterScriptFunctions( void );
 
 	virtual bool			ShouldBurningPropsEmitLight() { return false; }
 	virtual float			FlPlayerFallDamage( CBasePlayer *pPlayer ) { return 0.0f; } //no fall damage in portal
