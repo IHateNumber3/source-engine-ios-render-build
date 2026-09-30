@@ -1,4 +1,4 @@
-//========= Copyright  1996-2005, Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: Game rules for Portal.
 //
@@ -37,8 +37,10 @@ public:
 	CPortalGameRules();
 	virtual ~CPortalGameRules() {}
 
-	// --- VScript: Гарантированный публичный доступ ---
+#ifndef CLIENT_DLL
+	// --- VScript: Доступно только на сервере ---
 	virtual void RegisterScriptFunctions( void );
+#endif
 
 #ifdef CLIENT_DLL
 	virtual bool IsBonusChallengeTimeBased( void );
@@ -75,7 +77,5 @@ inline CPortalGameRules* PortalGameRules()
 {
 	return dynamic_cast<CPortalGameRules*>(g_pGameRules);
 }
-
-
 
 #endif // PORTAL_GAMERULES_H
