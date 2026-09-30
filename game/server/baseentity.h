@@ -377,7 +377,7 @@ public:
 	virtual void     RunPrecacheScripts();
 
 	// Описание класса энтити для регистрации в Squirrel VM
-	DECLARE_SCRIPT_DESC();
+	static ScriptClassDesc_t *GetScriptDesc();
 
 
 
