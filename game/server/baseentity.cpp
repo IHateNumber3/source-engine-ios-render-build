@@ -7505,7 +7505,7 @@ bool CBaseEntity::ValidateScriptScope()
 			Q_snprintf( szScopeName, sizeof(szScopeName), "%s_%d", GetClassname(), entindex() );
 		}
 
-		m_ScriptScope.Init( szScopeName, g_pScriptVM->GetRootTable() );
+		m_ScriptScope.Init( szScopeName, NULL );
 		m_ScriptScope.SetValue( "self", g_pScriptVM->RegisterInstance( GetScriptDesc(), this ) );
 	}
 	return true;
