@@ -361,10 +361,6 @@ public:
 	static int				m_nDebugPlayer;
 
 public:
-    // VScript
-    HSCRIPT GetScriptInstance();
-
-public:
     HSCRIPT m_hScriptInstance;
     string_t m_iszScriptId;
 
