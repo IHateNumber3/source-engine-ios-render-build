@@ -476,3 +476,6 @@ void CPortalGameRules::RegisterScriptFunctions( void )
 	g_pScriptVM->RegisterInstance( &PlayerVoiceListener(), "PlayerVoiceListener" );
 }
 #endif // !CLIENT_DLL
+
+
+
