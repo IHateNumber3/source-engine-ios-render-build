@@ -368,6 +368,22 @@ public:
     HSCRIPT m_hScriptInstance;
     string_t m_iszScriptId;
 
+public:
+	// --- VScript Fields ---
+	CScriptScope     m_ScriptScope;
+	string_t         m_iszVScripts;
+	string_t         m_iszScriptThinkFunction;
+
+	// --- VScript Methods ---
+	CScriptScope*    GetScriptScope() { return &m_ScriptScope; }
+	HSCRIPT          GetScriptInstance();
+	bool             ValidateScriptScope();
+	virtual void     RunPrecacheScripts();
+
+	// Описание класса энтити для регистрации в Squirrel VM
+	static ScriptClassDesc_t *GetScriptDesc();
+
+
 
 protected:
 
