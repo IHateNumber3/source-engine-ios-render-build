@@ -2580,7 +2580,7 @@ HSCRIPT CBaseEntity::GetScriptInstance()
 			m_iszScriptId = AllocPooledString( szName );
 		}
 		// Передаем 'this' в GetScriptDesc, как требует шаблон ivscript.h
-		m_hScriptInstance = g_pScriptVM->RegisterInstance( GetScriptDesc(this), this );
+		m_hScriptInstance = g_pScriptVM->RegisterInstance( GetScriptDesc(), this );
 		g_pScriptVM->SetInstanceUniqeId( m_hScriptInstance, STRING(m_iszScriptId) );
 	}
 	return m_hScriptInstance;
