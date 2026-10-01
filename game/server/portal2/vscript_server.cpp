@@ -37,7 +37,7 @@ inline HSCRIPT ToHScript( CBaseEntity *pEnt )
 
 // --- Объявление внешнего менеджера скриптов ---
 class IScriptManager;
-extern IScriptManager *scriptmanager;
+extern IScriptManager *_scriptmanager;
 
 
 extern ScriptClassDesc_t * GetScriptDesc( CBaseEntity * );
@@ -400,7 +400,7 @@ bool VScriptServerInit()
 {
 	VMPROF_START
 
-	if( scriptmanager != NULL )
+	if( _scriptmanager != NULL )
 	{
 		ScriptLanguage_t scriptLanguage = SL_DEFAULT;
 
@@ -429,7 +429,7 @@ bool VScriptServerInit()
 		if( scriptLanguage != SL_NONE )
 		{
 			if ( g_pScriptVM == NULL )
-				g_pScriptVM = scriptmanager->CreateVM( scriptLanguage );
+				g_pScriptVM = _scriptmanager->CreateVM( scriptLanguage );
 
 			if( g_pScriptVM )
 			{
