@@ -346,6 +346,10 @@ $Project "Server (Portal)"
             $File   "$SRCDIR\game\shared\portal2\vscript_shared.cpp"
             $File   "$SRCDIR\game\shared\portal2\vscript_shared.h"
 			$File	"portal2\portal_radio.cpp"
+        	$File	"portal2\portal_mp_stats.cpp"
+			$File	"portal2\player_voice_listener.cpp"
+			$File	"portal2\player_voice_listener.h"
+
 
 			$Folder	"Weapons"
 			{
