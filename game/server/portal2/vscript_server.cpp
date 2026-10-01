@@ -492,7 +492,7 @@ void VScriptServerTerm()
 	{
 		if( g_pScriptVM )
 		{
-			scriptmanager->DestroyVM( g_pScriptVM );
+			_scriptmanager->DestroyVM( g_pScriptVM );
 			g_pScriptVM = NULL;
 		}
 	}
