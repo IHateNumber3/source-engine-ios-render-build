@@ -5,7 +5,7 @@
 //=============================================================================
 
 #include "cbase.h"
-#include "vscript/vscript_templates.h⁠"
+#include "vscript/vscript_templates.h"
 #include "util.h"
 #include "icommandline.h"
 #include "tier1/utlbuffer.h"
