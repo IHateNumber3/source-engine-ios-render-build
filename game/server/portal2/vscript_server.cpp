@@ -15,7 +15,7 @@
 #include "characterset.h"
 #include "sceneentity.h"		// for exposing scene precache function
 #include "isaverestore.h"
-#include "portal_gamerules.h"
+#include "portal2/portal_gamerules.h"
 #ifdef _WIN32
 //#include "vscript_server_nut.h"
 #endif
@@ -454,9 +454,10 @@ bool VScriptServerInit()
 
 				
 				if ( PortalGameRules() )
-				{
-					PortalGameRules()->RegisterScriptFunctions();
-				}
+                {
+                    static_cast<CPortalGameRules*>(PortalGameRules())->RegisterScriptFunctions();
+                }
+
 
 				g_pScriptVM->RegisterInstance( &g_ScriptEntityIterator, "Entities" );
 
