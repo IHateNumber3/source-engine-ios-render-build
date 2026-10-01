@@ -39,8 +39,17 @@
 #include "npc_alyx_episodic.h"
 #endif // HL2_EPISODIC
 
+// be sure we need that
+inline HSCRIPT ToHScript( CBaseEntity *pEnt )
+{
+	if ( !pEnt )
+		return NULL;
+	return pEnt->GetScriptInstance();
+}
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+
 
 extern ISoundEmitterSystemBase *soundemitterbase;
 extern ISceneFileCache *scenefilecache;
