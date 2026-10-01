@@ -37,10 +37,8 @@ public:
 	CPortalGameRules();
 	virtual ~CPortalGameRules() {}
 
-#ifndef CLIENT_DLL
-	// --- VScript: Доступно только на сервере ---
+	// --- VScript: Объявлено всегда (для клиента и сервера) ---
 	virtual void RegisterScriptFunctions( void );
-#endif
 
 #ifdef CLIENT_DLL
 	virtual bool IsBonusChallengeTimeBased( void );
