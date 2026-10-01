@@ -33,6 +33,7 @@
 #include "SceneCache.h"
 #include "scripted.h"
 #include "env_debughistory.h"
+#include "portal2/vscript_server.h"
 
 #ifdef HL2_EPISODIC
 #include "npc_alyx_episodic.h"
