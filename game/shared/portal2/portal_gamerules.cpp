@@ -450,9 +450,12 @@ HSCRIPT GetPlayer( void )
 	}
 	return NULL;	
 }
+#endif // !CLIENT_DLL
 
+// Данная функция определена всегда (включая клиент), чтобы компилятор видел её тело и создал vtable
 void CPortalGameRules::RegisterScriptFunctions( void )
 {
+#ifndef CLIENT_DLL
 	ScriptRegisterFunctionNamed( g_pScriptVM, ScriptIsMultiplayer, "IsMultiplayer", "Is this a multiplayer game?" );
 	ScriptRegisterFunction( g_pScriptVM, GetPlayerSilenceDuration, "Time that the specified player has been silent on the mic." );
 	ScriptRegisterFunction( g_pScriptVM, GetOrangePlayerIndex, "Player index of the orange player." );
@@ -474,8 +477,5 @@ void CPortalGameRules::RegisterScriptFunctions( void )
 	ScriptRegisterFunction( g_pScriptVM, UpgradePlayerPotatogun, "Give player the portalgun." );
 	ScriptRegisterFunction( g_pScriptVM, TryDLC1InstalledOrCatch, "Tests if the DLC1 is installed for Try/Catch blocks." );
 	g_pScriptVM->RegisterInstance( &PlayerVoiceListener(), "PlayerVoiceListener" );
+#endif
 }
-#endif // !CLIENT_DLL
-
-
-
