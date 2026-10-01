@@ -37,7 +37,9 @@ inline HSCRIPT ToHScript( CBaseEntity *pEnt )
 
 // --- Объявление внешнего менеджера скриптов ---
 class IScriptManager;
+extern IScriptManager *__scriptmanager;
 extern IScriptManager *_scriptmanager;
+extern IScriptManager *scriptmanager;
 
 
 extern ScriptClassDesc_t * GetScriptDesc( CBaseEntity * );
