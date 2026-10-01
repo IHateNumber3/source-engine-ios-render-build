@@ -5,7 +5,7 @@
 //=============================================================================
 
 #include "cbase.h"
-#include "portal2/vscript_server.h"
+#include "vscript_templates.h⁠"
 #include "util.h"
 #include "icommandline.h"
 #include "tier1/utlbuffer.h"
