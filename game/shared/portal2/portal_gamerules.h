@@ -41,6 +41,8 @@ public:
 #ifdef CLIENT_DLL
 	virtual bool IsBonusChallengeTimeBased( void );
 	virtual bool IsChallengeMode();
+
+    virtual void RegisterScriptFunctions( void );
 #endif
 
 	virtual bool ShouldCollide( int collisionGroup0, int collisionGroup1 );
