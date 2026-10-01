@@ -20,6 +20,13 @@
 //#include "vscript_server_nut.h"
 #endif
 
+// Объявляем интерфейс и глобальную машину скриптов, если они не подтянулись
+class IScriptVM;
+extern IScriptVM *g_pScriptVM;
+
+// Заглушка/объявление класса-обертки KeyValues для скриптов
+class CScriptKeyValues;
+
 // --- Хелперы конвертации VScript <-> CBaseEntity ---
 inline CBaseEntity *ToEnt( HSCRIPT hScript )
 {
