@@ -37,8 +37,6 @@ public:
 	CPortalGameRules();
 	virtual ~CPortalGameRules() {}
 
-	// --- VScript: Объявлено всегда (для клиента и сервера) ---
-	virtual void RegisterScriptFunctions( void );
 
 #ifdef CLIENT_DLL
 	virtual bool IsBonusChallengeTimeBased( void );
@@ -64,6 +62,9 @@ public:
 	virtual bool			ClientCommand( CBaseEntity *pEdict, const CCommand &args );
 
 	virtual bool			IsSavingAllowed( void );
+
+	// --- VScript: Объявлено всегда (для клиента и сервера) ---
+	virtual void RegisterScriptFunctions( void );
 #endif
 };
 
