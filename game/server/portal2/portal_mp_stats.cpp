@@ -13,15 +13,3 @@ bool IsPlayerLevelComplete(int i1, int i2, int i3) { return false; }
 int GetHighestActiveBranch() { return 0; }
 int GetCoopBranchLevelIndex(int i) { return 0; }
 void PrecacheMovie(char const *pszMovieName) {}
-
-// Заглушка для голосового лизтенера, если он вызывается в правилах
-static CPlayerVoiceListener s_PlayerVoiceListener;
-CPlayerVoiceListener *PlayerVoiceListener()
-{
-    return &s_PlayerVoiceListener;
-}
-
-float CPlayerVoiceListener::GetPlayerSilenceDuration(int iPlayerIndex)
-{
-    return 0.0f;
-}
